@@ -1,0 +1,21 @@
+package api
+
+import (
+	"github.com/gin-gonic/gin"
+	"online_judge/middleware"
+)
+
+func InitRouter() {
+	r := gin.Default()
+	r.Use(middleware.CORS())
+	u := r.Group("/user")
+	{
+		u.POST("/register", Register)
+		u.POST("/login", Login)
+		u.GET("/refresh", Refresh)
+		u.POST("/logout", middleware.Auth(), Logout)
+		u.POST("/password", middleware.Auth(), ChangePassword)
+	}
+	
+	r.Run()
+}
