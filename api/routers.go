@@ -16,6 +16,11 @@ func InitRouter() {
 		u.POST("/logout", middleware.Auth(), Logout)
 		u.POST("/password", middleware.Auth(), ChangePassword)
 	}
-	
+	p := r.Group("/problem")
+	{
+		p.POST("/add", middleware.Auth(), AddProblem)
+		p.GET("/view", ViewProblem)
+		p.PUT("/update", middleware.Auth(), UpdateProblem)
+	}
 	r.Run()
 }
