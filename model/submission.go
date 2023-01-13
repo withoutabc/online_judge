@@ -1,9 +1,10 @@
 package model
 
 type Submission struct {
-	Sid    int    `json:"sid" form:"sid" `
-	Pid    string `json:"pid" form:"pid"`
-	Uid    string `json:"uid" form:"uid" `
-	Status string `json:"status" form:"status"`
-	Code   string `json:"code" form:"code" `
+	Sid      int    `json:"sid"`
+	Pid      string `json:"pid"`
+	Uid      string `json:"uid"`
+	Code     string `json:"code"`
+	Language string `json:"language"`
+	Status   string `json:"status"`
 }

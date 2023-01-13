@@ -22,5 +22,10 @@ func InitRouter() {
 		p.GET("/view", ViewProblem)
 		p.PUT("/update", middleware.Auth(), UpdateProblem)
 	}
+	s := r.Group("/submission")
+	{
+		s.POST("/submit", middleware.Auth(), Submit)
+		s.GET("/view", ViewResult)
+	}
 	r.Run()
 }

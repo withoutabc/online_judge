@@ -21,3 +21,11 @@ func ViewProblems(c *gin.Context, info string, problems []model.Problem) {
 		"data":   problems,
 	})
 }
+
+func ViewSubmissions(c *gin.Context, info string, submissions []model.Submission) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"info":   info,
+		"data":   submissions,
+	})
+}
