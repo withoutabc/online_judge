@@ -128,13 +128,6 @@ func ChangePassword(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	if uid == "" {
-		util.RespUnauthorizedErr(c)
-		c.Abort()
-		return
-	}
-	//
-
 	password := c.PostForm("password")
 	newPassword := c.PostForm("newPassword")
 	//有效输入

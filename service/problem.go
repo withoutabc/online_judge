@@ -16,6 +16,6 @@ func ViewProblems() (problems []model.Problem, err error) {
 }
 
 func UpdateProblem(p model.Problem) (err error) {
-	err = dao.UpdateProduct(p)
+	err = dao.UpdateProblem(p)
 	return
 }

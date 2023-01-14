@@ -29,3 +29,11 @@ func ViewSubmissions(c *gin.Context, info string, submissions []model.Submission
 		"data":   submissions,
 	})
 }
+
+func ViewTestcases(c *gin.Context, info string, testcases []model.Testcase) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"info":   info,
+		"data":   testcases,
+	})
+}

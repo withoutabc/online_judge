@@ -32,7 +32,7 @@ func ViewProblems() (problems []model.Problem, err error) {
 	return problems, nil
 }
 
-func UpdateProduct(p model.Problem) (err error) {
+func UpdateProblem(p model.Problem) (err error) {
 	var sql strings.Builder
 	var arg []interface{}
 	sql.WriteString("update problem set")

@@ -27,5 +27,12 @@ func InitRouter() {
 		s.POST("/submit", middleware.Auth(), Submit)
 		s.GET("/view", ViewResult)
 	}
+	t := r.Group("/test")
+	{
+		t.POST("/add", middleware.Auth(), AddTestcase)
+		t.GET("/view", middleware.Auth(), ViewTestcases)
+		t.PUT("/update", middleware.Auth(), UpdateTestcase)
+		t.DELETE("/delete", middleware.Auth(), DeleteTestcase)
+	}
 	r.Run()
 }
