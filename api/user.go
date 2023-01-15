@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -38,10 +39,20 @@ func Register(c *gin.Context) {
 		util.NormErr(c, 400, "different password")
 		return
 	}
+	//生成盐值
+	var salt []byte
+	salt, err = service.GenerateSalt()
+	if err != nil {
+		util.RespInternalErr(c)
+		return
+	}
+	//加密
+	hashedPassword := service.HashWithSalt(password, salt)
 	//用户信息写入数据库
 	err = service.CreateUser(model.User{
 		Username: username,
-		Password: password,
+		Password: hashedPassword,
+		Salt:     salt,
 	})
 	if err != nil {
 		fmt.Printf("create user err:%v", err)
@@ -83,12 +94,17 @@ func Login(c *gin.Context) {
 		}
 		return
 	}
-	//密码错误
-	if u.Password != password {
+	//对输入密码加密
+	hashedPassword := service.HashWithSalt(password, u.Salt)
+	//转化密码，对比
+	if bytes.Equal(hashedPassword, u.Password) == false {
 		util.NormErr(c, 400, "wrong password")
 		return
 	}
-	util.ViewUser(c, "login success", u)
+	util.ViewUser(c, "login success", model.User1{
+		Uid:      u.Uid,
+		Username: u.Username,
+	})
 	//设置cookie
 	c.SetCookie("uid", strconv.Itoa(u.Uid), 3600, "/", "localhost", false, true)
 }
@@ -125,14 +141,23 @@ func ChangePassword(c *gin.Context) {
 	uid, err := c.Cookie("uid")
 	if err != nil {
 		util.RespUnauthorizedErr(c)
-		c.Abort()
 		return
 	}
 	password := c.PostForm("password")
 	newPassword := c.PostForm("newPassword")
+	confPassword := c.PostForm("confirmPassword")
 	//有效输入
-	if password == "" || newPassword == "" {
+	if password == "" || newPassword == "" || confPassword == "" {
 		util.RespParamErr(c)
+		return
+	}
+	//密码是否一致
+	if confPassword != newPassword {
+		util.NormErr(c, 400, "different password")
+		return
+	}
+	if password == newPassword {
+		util.NormErr(c, 400, "same password")
 		return
 	}
 	//检索用户处理
@@ -148,13 +173,35 @@ func ChangePassword(c *gin.Context) {
 		}
 		return
 	}
+	//对输入密码加密
+	hashedPassword := service.HashWithSalt(password, u.Salt)
 	//判断密码
-	if u.Password != password {
+	if bytes.Equal(hashedPassword, u.Password) == false {
 		util.NormErr(c, 400, "wrong password")
 		return
 	}
-	//修改密码
-	err = service.ChangePassword(newPassword, u.Username)
+	//密码正确,生成盐值
+	u, err = service.SearchUserByUid(uid)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			util.NormErr(c, 400, "user don't exist")
+		} else {
+			log.Printf("search user error:%v", err)
+			util.RespInternalErr(c)
+			return
+		}
+		return
+	}
+	var salt []byte
+	salt, err = service.GenerateSalt()
+	if err != nil {
+		util.RespInternalErr(c)
+		return
+	}
+	//加密
+	hashedPassword = service.HashWithSalt(newPassword, salt)
+	//修改密码和盐值
+	err = service.ChangePassword(hashedPassword, u.Username, salt)
 	if err != nil {
 		log.Printf("update password error:%v", err)
 		util.RespInternalErr(c)

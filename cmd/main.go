@@ -2,12 +2,12 @@ package main
 
 import (
 	"online_judge/api"
-	"online_judge/controller"
 	"online_judge/dao"
+	"online_judge/service"
 )
 
 func main() {
 	dao.InitDB()
-	go controller.Judge()
+	go service.Judge()
 	api.InitRouter()
 }

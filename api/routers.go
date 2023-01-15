@@ -33,7 +33,6 @@ func InitRouter() {
 		t.GET("/view", middleware.Auth(), ViewTestcases)
 		t.PUT("/update", middleware.Auth(), UpdateTestcase)
 		t.DELETE("/delete", middleware.Auth(), DeleteTestcase)
-
 	}
 	r.Run()
 }

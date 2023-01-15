@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="console.sql" type="DatabaseScript" editBeforeRun="true" singleton="false" nameIsGenerated="true">
-    <script-file value="$APPLICATION_CONFIG_DIR$/consoles/db/9dbdefde-dd85-46c1-8dff-9a468abe94f5/console.sql" />
-    <script-mode>FILE</script-mode>
-    <data-source id="9dbdefde-dd85-46c1-8dff-9a468abe94f5" namespace="schema/&quot;online_judge&quot;" />
-    <method v="2" />
-  </configuration>
-</component>

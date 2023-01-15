@@ -1,11 +1,10 @@
-package controller
+package service
 
 import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
 	"online_judge/model"
-	"online_judge/service"
 	"os/exec"
 	"strconv"
 	"time"
@@ -16,7 +15,7 @@ func Judge() {
 	ticker := time.NewTicker(time.Minute * 2)
 	for range ticker.C {
 		//查找所有pending的submission
-		submissions, err := service.SearchPendingCode()
+		submissions, err := SearchPendingCode()
 		if err != nil {
 			fmt.Printf("search pending code err:%v", err)
 			return
@@ -37,7 +36,7 @@ func Judge() {
 			}
 			//查询testcase
 			var testcases []model.Testcase
-			testcases, err = service.SearchTestcasesByPid(submission.Pid)
+			testcases, err = SearchTestcasesByPid(submission.Pid)
 			if err != nil {
 				fmt.Printf("search testcase err:%v", err)
 				return
@@ -85,7 +84,7 @@ func Judge() {
 				err = cmd.Run()
 				if err != nil {
 					fmt.Printf("run err:%v\n", err)
-					err = service.UpdateStatus("Compile error", strconv.Itoa(submission.Sid))
+					err = UpdateStatus("Compile error", strconv.Itoa(submission.Sid))
 					if err != nil {
 						fmt.Printf("update to Compile Error err:%v", err)
 						return
@@ -96,7 +95,7 @@ func Judge() {
 				//5.处理输出结果
 				result := out.String()
 				if result != testcase.Output {
-					err = service.UpdateStatus("Wrong Answer", strconv.Itoa(submission.Sid))
+					err = UpdateStatus("Wrong Answer", strconv.Itoa(submission.Sid))
 					if err != nil {
 						fmt.Printf("update to wrong answer err:%v", err)
 						break
@@ -104,7 +103,7 @@ func Judge() {
 					var count int
 					count++
 					if count == k+1 {
-						err = service.UpdateStatus("Accepted", strconv.Itoa(submission.Sid))
+						err = UpdateStatus("Accepted", strconv.Itoa(submission.Sid))
 						if err != nil {
 							fmt.Printf("update to accepted err:%v", err)
 							return

@@ -6,7 +6,7 @@ import (
 	"online_judge/model"
 )
 
-func ViewUser(c *gin.Context, info string, u model.User) {
+func ViewUser(c *gin.Context, info string, u model.User1) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"info":   info,
