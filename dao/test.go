@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"database/sql"
 	"fmt"
 	"online_judge/model"
 	"strings"
@@ -12,8 +13,9 @@ func InsertTestcase(t model.Testcase) (err error) {
 }
 
 func SearchTestcase(uid string, pid string) (testcases []model.Testcase, err error) {
+	var rows *sql.Rows
 	if pid == "" {
-		rows, err := DB.Query("select * from testcase where uid=?", uid)
+		rows, err = DB.Query("select * from testcase where uid=?", uid)
 		if err != nil {
 			return nil, err
 		}
@@ -29,7 +31,7 @@ func SearchTestcase(uid string, pid string) (testcases []model.Testcase, err err
 		}
 	} else {
 		if pid != "" {
-			rows, err := DB.Query("select * from testcase where uid=? and pid=?", uid, pid)
+			rows, err = DB.Query("select * from testcase where uid=? and pid=?", uid, pid)
 			if err != nil {
 				return nil, err
 			}
@@ -49,32 +51,75 @@ func SearchTestcase(uid string, pid string) (testcases []model.Testcase, err err
 }
 
 func UpdateTestcase(t model.Testcase) (err error) {
-	var sql strings.Builder
+	var Sql strings.Builder
 	var arg []interface{}
-	sql.WriteString("update product set")
+	Sql.WriteString("update product set")
 	if t.Input != "" {
 		if len(arg) > 0 {
-			sql.WriteString(",")
+			Sql.WriteString(",")
 		}
-		sql.WriteString(" input=?")
+		Sql.WriteString(" input=?")
 		arg = append(arg, t.Input)
 	}
 	if t.Output != "" {
 		if len(arg) > 0 {
-			sql.WriteString(",")
+			Sql.WriteString(",")
 		}
-		sql.WriteString(" output=?")
+		Sql.WriteString(" output=?")
 		arg = append(arg, t.Output)
 	}
-	sql.WriteString(" where pid=? and uid=?")
+	Sql.WriteString(" where pid=? and uid=?")
 	arg = append(arg, t.Pid)
 	arg = append(arg, t.Uid)
-	fmt.Println(sql.String())
-	_, err = DB.Exec(sql.String(), arg...)
+	fmt.Println(Sql.String())
+	_, err = DB.Exec(Sql.String(), arg...)
 	return
 }
 
 func DeleteTestcase(uid string, tid string) (err error) {
 	_, err = DB.Exec("delete from testcase where uid=? and tid =?", uid, tid)
+	return
+}
+
+func GetPendingCode() (submissions []model.Submission, err error) {
+	var rows *sql.Rows
+	rows, err = DB.Query("select * from submission where status='Pending'")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var submission model.Submission
+		if err = rows.Scan(&submission.Sid, &submission.Pid, &submission.Uid, &submission.Status, &submission.Code, &submission.Language); err != nil {
+			return nil, err
+		}
+		submissions = append(submissions, submission)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return
+}
+
+func GetTestcasesByPid(pid string) (testcases []model.Testcase, err error) {
+	var rows *sql.Rows
+	rows, err = DB.Query("select * from testcase where pid=?", pid)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var testcase model.Testcase
+		if err = rows.Scan(&testcase.Tid, &testcase.Pid, &testcase.Uid, &testcase.Input, &testcase.Output); err != nil {
+			return nil, err
+		}
+		testcases = append(testcases, testcase)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return
+}
+
+func UpdateStatus(status string, sid string) (err error) {
+	_, err = DB.Exec("update submission set status=? where sid=?", status, sid)
 	return
 }

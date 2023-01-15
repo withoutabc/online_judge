@@ -24,3 +24,18 @@ func DeleteTestcase(uid string, tid string) (err error) {
 	err = dao.DeleteTestcase(uid, tid)
 	return
 }
+
+func SearchPendingCode() (submissions []model.Submission, err error) {
+	submissions, err = dao.GetPendingCode()
+	return
+}
+
+func SearchTestcasesByPid(pid string) (testcases []model.Testcase, err error) {
+	testcases, err = dao.GetTestcasesByPid(pid)
+	return
+}
+
+func UpdateStatus(status string, sid string) (err error) {
+	err = dao.UpdateStatus(status, sid)
+	return
+}
