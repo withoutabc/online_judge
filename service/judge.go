@@ -60,6 +60,7 @@ func Judge() {
 				err = cmd.Run()
 				if err != nil {
 					fmt.Printf("build image err:%v\n", err)
+					return
 				}
 				fmt.Println("build image success")
 				//2.复制input.txt
@@ -89,7 +90,7 @@ func Judge() {
 						fmt.Printf("update to Compile Error err:%v", err)
 						return
 					}
-					return
+					break
 				}
 				fmt.Println("run success")
 				//5.处理输出结果

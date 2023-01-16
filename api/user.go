@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net/http"
 	"online_judge/model"
 	"online_judge/service"
 	"online_judge/util"
 	"strconv"
-	"time"
 )
 
 func Register(c *gin.Context) {
@@ -101,48 +101,43 @@ func Login(c *gin.Context) {
 		util.NormErr(c, 400, "wrong password")
 		return
 	}
-	util.ViewUser(c, "login success", model.User1{
-		Uid:      u.Uid,
-		Username: u.Username,
+	// 正确则登录成功
+	aToken, rToken, _ := service.GenToken(strconv.Itoa(u.Uid))
+	c.JSON(http.StatusOK, gin.H{
+		"status":        200,
+		"info":          "login success",
+		"uid":           u.Uid,
+		"token":         aToken,
+		"refresh_token": rToken,
 	})
-	//设置cookie
-	c.SetCookie("uid", strconv.Itoa(u.Uid), 3600, "/", "localhost", false, true)
-}
-
-func Logout(c *gin.Context) {
-	//清除登陆状态cookie
-	c.SetCookie("uid", "", -1, "/", "localhost", false, true)
-	util.RespOK(c)
 }
 
 func Refresh(c *gin.Context) {
-	//判断cookie过没过期
-	uid, err := c.Cookie("uid")
+	aToken := c.PostForm("token")
+	rToken := c.PostForm("refresh_token")
+	if aToken == "" || rToken == "" {
+		util.RespParamErr(c)
+		return
+	}
+	newAToken, newRToken, uid, err := service.RefreshToken(aToken, rToken)
 	if err != nil {
-		util.RespUnauthorizedErr(c)
-		c.Abort()
+		fmt.Printf("err:%v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": 400,
+			"info":   err.Error(),
+		})
 		return
 	}
-	if uid == "" {
-		util.RespUnauthorizedErr(c)
-		c.Abort()
-		return
-	}
-	//没过期
-	c.Next()
-	// 设置新的cookie
-	expiration := time.Now().Add(time.Hour)
-	c.SetCookie("uid", uid, int(expiration.Unix()), "/", "localhost", false, true)
-	util.RespOK(c)
+	c.JSON(http.StatusOK, gin.H{
+		"uid":           uid,
+		"token":         newAToken,
+		"refresh_token": newRToken,
+	})
 }
 
 func ChangePassword(c *gin.Context) {
-	//获取uid
-	uid, err := c.Cookie("uid")
-	if err != nil {
-		util.RespUnauthorizedErr(c)
-		return
-	}
+	//获取参数
+	uid := c.Param("uid")
 	password := c.PostForm("password")
 	newPassword := c.PostForm("newPassword")
 	confPassword := c.PostForm("confirmPassword")
@@ -161,8 +156,7 @@ func ChangePassword(c *gin.Context) {
 		return
 	}
 	//检索用户处理
-	var u model.User
-	u, err = service.SearchUserByUid(uid)
+	u, err := service.SearchUserByUid(uid)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			util.NormErr(c, 400, "user don't exist")

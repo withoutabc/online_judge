@@ -52,3 +52,12 @@ func NormErr(c *gin.Context, status int, info string) {
 		"info":   info,
 	})
 }
+
+var ExistErr = respTemplate{
+	Status: 400,
+	Info:   "key not exist",
+}
+
+func NotExist(c *gin.Context) {
+	c.JSON(http.StatusBadRequest, ExistErr)
+}

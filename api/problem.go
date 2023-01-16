@@ -10,6 +10,7 @@ import (
 )
 
 func AddProblem(c *gin.Context) {
+	uid := c.Param("uid")
 	//获取题目信息
 	timeLimit := c.PostForm("time_limit")
 	memoryLimit := c.PostForm("memory_limit")
@@ -20,7 +21,7 @@ func AddProblem(c *gin.Context) {
 		DescriptionOutput: c.PostForm("description_output"),
 		SampleInput:       c.PostForm("sample_input"),
 		SampleOutput:      c.PostForm("sample_output"),
-		Uid:               c.PostForm("uid"),
+		Uid:               uid,
 	}
 	//所有项必填
 	if p.Title == "" || p.Description == "" || p.DescriptionInput == "" || p.DescriptionOutput == "" || p.SampleInput == "" || p.SampleOutput == "" || timeLimit == "" || memoryLimit == "" {
@@ -76,6 +77,7 @@ func ViewProblem(c *gin.Context) {
 }
 
 func UpdateProblem(c *gin.Context) {
+	uid := c.Param("uid")
 	//获取题目信息
 	Pid := c.PostForm("pid")
 	pid, err := strconv.Atoi(Pid)
@@ -94,7 +96,7 @@ func UpdateProblem(c *gin.Context) {
 		DescriptionOutput: c.PostForm("description_output"),
 		SampleInput:       c.PostForm("sample_input"),
 		SampleOutput:      c.PostForm("sample_output"),
-		Uid:               c.PostForm("uid"),
+		Uid:               uid,
 	}
 	//都不填为更新失败
 	if p.Title == "" && p.Description == "" && p.DescriptionInput == "" && p.DescriptionOutput == "" && p.SampleInput == "" && p.SampleOutput == "" && timeLimit == "" && memoryLimit == "" {

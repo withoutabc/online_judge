@@ -1,5 +1,7 @@
 package model
 
+import "github.com/dgrijalva/jwt-go"
+
 type User struct {
 	Uid      int    `json:"uid"`
 	Username string `json:"username"`
@@ -7,7 +9,7 @@ type User struct {
 	Salt     []byte `json:"salt"`
 }
 
-type User1 struct {
-	Uid      int    `json:"uid"`
-	Username string `json:"username"`
+type MyClaims struct {
+	Uid string `json:"uid"`
+	jwt.StandardClaims
 }

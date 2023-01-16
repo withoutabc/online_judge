@@ -9,12 +9,7 @@ import (
 )
 
 func AddTestcase(c *gin.Context) {
-	//获取uid
-	uid, err := c.Cookie("uid")
-	if err != nil {
-		util.RespUnauthorizedErr(c)
-		return
-	}
+	uid := c.Param("uid")
 	t := model.Testcase{
 		Pid:    c.PostForm("pid"),
 		Uid:    uid,
@@ -26,8 +21,7 @@ func AddTestcase(c *gin.Context) {
 		return
 	}
 	//输入或输入不得重复
-	var testcases []model.Testcase
-	testcases, err = service.SearchTestcase(uid, t.Pid)
+	testcases, err := service.SearchTestcase(uid, t.Pid)
 	if err != nil {
 		util.RespInternalErr(c)
 		return
@@ -49,16 +43,10 @@ func AddTestcase(c *gin.Context) {
 }
 
 func ViewTestcases(c *gin.Context) {
-	//获取uid
-	uid, err := c.Cookie("uid")
-	if err != nil {
-		util.RespUnauthorizedErr(c)
-		return
-	}
+	uid := c.Param("uid")
 	//获取pid
 	pid := c.Query("pid")
-	var testcases []model.Testcase
-	testcases, err = service.SearchTestcase(uid, pid)
+	testcases, err := service.SearchTestcase(uid, pid)
 	if err != nil {
 		util.RespInternalErr(c)
 		return
@@ -67,12 +55,7 @@ func ViewTestcases(c *gin.Context) {
 }
 
 func UpdateTestcase(c *gin.Context) {
-	//获取uid
-	uid, err := c.Cookie("uid")
-	if err != nil {
-		util.RespUnauthorizedErr(c)
-		return
-	}
+	uid := c.Param("uid")
 	//获取修改信息
 	pid := c.PostForm("pid")
 	input := c.PostForm("input")
@@ -94,8 +77,7 @@ func UpdateTestcase(c *gin.Context) {
 		return
 	}
 	//input和output不能同时重复
-	var testcases []model.Testcase
-	testcases, err = service.SearchTestcase(uid, pid)
+	testcases, err := service.SearchTestcase(uid, pid)
 	if err != nil {
 		util.RespInternalErr(c)
 		return
@@ -116,16 +98,11 @@ func UpdateTestcase(c *gin.Context) {
 }
 
 func DeleteTestcase(c *gin.Context) {
-	//获取uid
-	uid, err := c.Cookie("uid")
-	if err != nil {
-		util.RespUnauthorizedErr(c)
-		return
-	}
+	uid := c.Param("uid")
 	//tid
 	tid := c.Query("tid")
 	//删除
-	err = service.DeleteTestcase(uid, tid)
+	err := service.DeleteTestcase(uid, tid)
 	if err != nil {
 		fmt.Printf("delete testcase err:%v", err)
 		util.RespInternalErr(c)

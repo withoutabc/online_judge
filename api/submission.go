@@ -9,10 +9,11 @@ import (
 )
 
 func Submit(c *gin.Context) {
+	uid := c.Param("uid")
 	//获取提交的信息
 	s := model.Submission{
 		Pid:      c.PostForm("pid"),
-		Uid:      c.PostForm("uid"),
+		Uid:      uid,
 		Code:     c.PostForm("code"),
 		Language: c.PostForm("language"),
 	}
@@ -48,10 +49,11 @@ func Submit(c *gin.Context) {
 }
 
 func ViewResult(c *gin.Context) {
+	uid := c.Param("uid")
 	//获取查询字段，都可为空
 	s := model.Submission{
 		Pid:      c.PostForm("pid"),
-		Uid:      c.PostForm("uid"),
+		Uid:      uid,
 		Language: c.PostForm("language"),
 		Status:   c.PostForm("status"),
 	}
