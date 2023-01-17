@@ -44,7 +44,6 @@ func Judge() {
 			fmt.Println("none")
 			return
 		}
-		fmt.Println(testcases)
 		//遍历，依次传入input运行
 		for k, testcase := range testcases {
 			fmt.Printf("input:%s\n", testcase.Input)
