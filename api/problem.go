@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"online_judge/model"
 	"online_judge/service"
 	"online_judge/util"
@@ -11,6 +12,10 @@ import (
 
 func AddProblem(c *gin.Context) {
 	uid := c.Param("uid")
+	if uid == "" {
+		util.RespParamErr(c)
+		return
+	}
 	//获取题目信息
 	timeLimit := c.PostForm("time_limit")
 	memoryLimit := c.PostForm("memory_limit")
@@ -43,7 +48,7 @@ func AddProblem(c *gin.Context) {
 	p.MemoryLimit = m
 	//是否出现了相同的title
 	var problems []model.Problem
-	problems, err = service.ViewProblems()
+	problems, err = service.SearchProblems("")
 	if err != nil {
 		fmt.Printf("view problems err:%v", err)
 		util.RespInternalErr(c)
@@ -62,24 +67,33 @@ func AddProblem(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	util.RespOK(c)
+	util.RespOK(c, "add problem success")
 }
 
-func ViewProblem(c *gin.Context) {
+func SearchProblem(c *gin.Context) {
+	pid := c.Query("pid")
 	//查看题目
-	problems, err := service.ViewProblems()
+	problems, err := service.SearchProblems(pid)
 	if err != nil {
-		fmt.Printf("view problems err:%v", err)
+		fmt.Printf("search problem err:%v", err)
 		util.RespInternalErr(c)
 		return
 	}
-	util.ViewProblems(c, "view problems successfully", problems)
+	c.JSON(http.StatusOK, model.RespProblem{
+		Status: 200,
+		Info:   "search problem success",
+		Data:   problems,
+	})
 }
 
 func UpdateProblem(c *gin.Context) {
+	//获取信息
 	uid := c.Param("uid")
-	//获取题目信息
 	Pid := c.PostForm("pid")
+	if uid == "" || Pid == "" {
+		util.RespParamErr(c)
+		return
+	}
 	pid, err := strconv.Atoi(Pid)
 	if err != nil {
 		fmt.Println(err)
@@ -116,19 +130,20 @@ func UpdateProblem(c *gin.Context) {
 	}
 	p.TimeLimit = t
 	p.MemoryLimit = m
-	//信息全部相同为更新失败
-	var problems []model.Problem
-	problems, err = service.ViewProblems()
+	problems, err := service.SearchProblems(Pid)
 	if err != nil {
-		fmt.Printf("view problems err:%v", err)
+		fmt.Printf("search problems err:%v", err)
 		util.RespInternalErr(c)
 		return
 	}
-	for _, problem := range problems {
-		if problem == p {
-			util.NormErr(c, 400, "fail to update")
-			return
-		}
+	if problems == nil {
+		fmt.Printf("problems:nil\n")
+		util.NormErr(c, 400, "pid not exist")
+		return
+	}
+	if service.CheckStruct(problems, p) {
+		util.NormErr(c, 400, "repeated problem")
+		return
 	}
 	//修改题目
 	err = service.UpdateProblem(p)
@@ -137,5 +152,5 @@ func UpdateProblem(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	util.RespOK(c)
+	util.RespOK(c, "update problem success")
 }

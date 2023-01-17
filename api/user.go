@@ -16,7 +16,7 @@ import (
 func Register(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
-	confPassword := c.PostForm("confirmPassword")
+	confPassword := c.PostForm("confirm_password")
 	//判断是否有效输入
 	if username == "" || password == "" || confPassword == "" {
 		util.RespParamErr(c)
@@ -59,19 +59,7 @@ func Register(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	//查找用户
-	u, err = service.SearchUserByUsername(username)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			util.NormErr(c, 400, "user don't exist")
-		} else {
-			log.Printf("search user error:%v", err)
-			util.RespInternalErr(c)
-			return
-		}
-		return
-	}
-	util.RespOK(c)
+	util.RespOK(c, "register success")
 }
 
 func Login(c *gin.Context) {
@@ -103,23 +91,34 @@ func Login(c *gin.Context) {
 	}
 	// 正确则登录成功
 	aToken, rToken, _ := service.GenToken(strconv.Itoa(u.Uid))
-	c.JSON(http.StatusOK, gin.H{
-		"status":        200,
-		"info":          "login success",
-		"uid":           u.Uid,
-		"token":         aToken,
-		"refresh_token": rToken,
+	c.JSON(http.StatusOK, model.RespLogin{
+		Status: 200,
+		Info:   "login success",
+		Data: model.Login{
+			Uid:          u.Uid,
+			Token:        aToken,
+			RefreshToken: rToken,
+		},
 	})
 }
 
 func Refresh(c *gin.Context) {
-	aToken := c.PostForm("token")
+	//refresh_token
 	rToken := c.PostForm("refresh_token")
-	if aToken == "" || rToken == "" {
+	if rToken == "" {
 		util.RespParamErr(c)
 		return
 	}
-	newAToken, newRToken, uid, err := service.RefreshToken(aToken, rToken)
+	_, err := service.ParseToken(rToken)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": 2005,
+			"info":   "无效的Token",
+		})
+		return
+	}
+	//生成新的token
+	newAToken, newRToken, err := service.RefreshToken(rToken)
 	if err != nil {
 		fmt.Printf("err:%v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -128,10 +127,13 @@ func Refresh(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"uid":           uid,
-		"token":         newAToken,
-		"refresh_token": newRToken,
+	c.JSON(http.StatusOK, model.RespToken{
+		Status: 200,
+		Info:   "refresh token success",
+		Data: model.Token{
+			Token:        newAToken,
+			RefreshToken: newRToken,
+		},
 	})
 }
 
@@ -139,8 +141,8 @@ func ChangePassword(c *gin.Context) {
 	//获取参数
 	uid := c.Param("uid")
 	password := c.PostForm("password")
-	newPassword := c.PostForm("newPassword")
-	confPassword := c.PostForm("confirmPassword")
+	newPassword := c.PostForm("new_password")
+	confPassword := c.PostForm("confirm_password")
 	//有效输入
 	if password == "" || newPassword == "" || confPassword == "" {
 		util.RespParamErr(c)
@@ -201,5 +203,5 @@ func ChangePassword(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	util.RespOK(c)
+	util.RespOK(c, "change password success")
 }

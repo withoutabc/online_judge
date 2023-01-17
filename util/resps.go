@@ -10,13 +10,11 @@ type respTemplate struct {
 	Info   string `json:"info"`
 }
 
-var OK = respTemplate{
-	Status: 200,
-	Info:   "success",
-}
-
-func RespOK(c *gin.Context) {
-	c.JSON(http.StatusOK, OK)
+func RespOK(c *gin.Context, info string) {
+	c.JSON(http.StatusOK, respTemplate{
+		Status: 200,
+		Info:   info,
+	})
 }
 
 var ParamError = respTemplate{
@@ -47,17 +45,8 @@ func RespUnauthorizedErr(c *gin.Context) {
 }
 
 func NormErr(c *gin.Context, status int, info string) {
-	c.JSON(http.StatusBadRequest, gin.H{
-		"status": status,
-		"info":   info,
+	c.JSON(http.StatusBadRequest, respTemplate{
+		status,
+		info,
 	})
-}
-
-var ExistErr = respTemplate{
-	Status: 400,
-	Info:   "key not exist",
-}
-
-func NotExist(c *gin.Context) {
-	c.JSON(http.StatusBadRequest, ExistErr)
 }

@@ -1,9 +1,9 @@
 package dao
 
 import (
+	"database/sql"
 	"fmt"
 	"online_judge/model"
-	"strconv"
 	"strings"
 )
 
@@ -13,8 +13,13 @@ func InsertProblem(p model.Problem) (err error) {
 
 }
 
-func ViewProblems() (problems []model.Problem, err error) {
-	rows, err := DB.Query("select * from problem ")
+func SearchProblems(pid string) (problems []model.Problem, err error) {
+	var rows *sql.Rows
+	if pid == "" {
+		rows, err = DB.Query("select * from problem ")
+	} else {
+		rows, err = DB.Query("select * from problem where pid=?", pid)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -78,21 +83,20 @@ func UpdateProblem(p model.Problem) (err error) {
 		sql.WriteString(" sample_output=?")
 		arg = append(arg, p.SampleOutput)
 	}
-	timeLimit := strconv.FormatFloat(p.TimeLimit, 'f', 20, 64)
-	if timeLimit != "" {
+
+	if p.TimeLimit != 0 {
 		if len(arg) > 0 {
 			sql.WriteString(",")
 		}
 		sql.WriteString(" time_limit=?")
-		arg = append(arg, timeLimit)
+		arg = append(arg, p.TimeLimit)
 	}
-	memoryLimit := strconv.FormatFloat(p.MemoryLimit, 'f', 20, 64)
-	if memoryLimit != "" {
+	if p.MemoryLimit != 0 {
 		if len(arg) > 0 {
 			sql.WriteString(",")
 		}
 		sql.WriteString(" memory_limit=?")
-		arg = append(arg, memoryLimit)
+		arg = append(arg, p.MemoryLimit)
 	}
 	sql.WriteString(" where pid=?")
 	arg = append(arg, p.Pid)

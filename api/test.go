@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"online_judge/model"
 	"online_judge/service"
 	"online_judge/util"
@@ -10,6 +11,10 @@ import (
 
 func AddTestcase(c *gin.Context) {
 	uid := c.Param("uid")
+	if uid == "" {
+		util.RespParamErr(c)
+		return
+	}
 	t := model.Testcase{
 		Pid:    c.PostForm("pid"),
 		Uid:    uid,
@@ -20,7 +25,7 @@ func AddTestcase(c *gin.Context) {
 		util.RespParamErr(c)
 		return
 	}
-	//输入或输入不得重复
+	//输入或输出不得重复
 	testcases, err := service.SearchTestcase(uid, t.Pid)
 	if err != nil {
 		util.RespInternalErr(c)
@@ -39,11 +44,15 @@ func AddTestcase(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	util.RespOK(c)
+	util.RespOK(c, "add testcase success")
 }
 
 func ViewTestcases(c *gin.Context) {
 	uid := c.Param("uid")
+	if uid == "" {
+		util.RespParamErr(c)
+		return
+	}
 	//获取pid
 	pid := c.Query("pid")
 	testcases, err := service.SearchTestcase(uid, pid)
@@ -51,11 +60,19 @@ func ViewTestcases(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	util.ViewTestcases(c, "view testcases successfully", testcases)
+	c.JSON(http.StatusOK, model.RespTestcase{
+		Status: 200,
+		Info:   "view testcase success",
+		Data:   testcases,
+	})
 }
 
 func UpdateTestcase(c *gin.Context) {
 	uid := c.Param("uid")
+	if uid == "" {
+		util.RespParamErr(c)
+		return
+	}
 	//获取修改信息
 	pid := c.PostForm("pid")
 	input := c.PostForm("input")
@@ -99,8 +116,11 @@ func UpdateTestcase(c *gin.Context) {
 
 func DeleteTestcase(c *gin.Context) {
 	uid := c.Param("uid")
-	//tid
 	tid := c.Query("tid")
+	if uid == "" || tid == "" {
+		util.RespParamErr(c)
+		return
+	}
 	//删除
 	err := service.DeleteTestcase(uid, tid)
 	if err != nil {
@@ -108,5 +128,5 @@ func DeleteTestcase(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	util.RespOK(c)
+	util.RespOK(c, "delete testcase success")
 }

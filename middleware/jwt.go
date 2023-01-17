@@ -31,7 +31,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		// parts[1]是获取到的tokenString，我们使用之前定义好的解析JWT的函数来解析它
+		// parts[1]是获取到的tokenString，使用解析JWT的函数来解析
 		mc, err := service.ParseToken(parts[1])
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -41,8 +41,8 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		// 将当前请求的uid信息保存到请求的上下文c上
+		//这步全文都没有Get过
 		c.Set("uid", mc.Uid)
-		c.Next() // 后续的处理函数可以用过c.Get("uid")来获取当前请求的用户信息
+		c.Next()
 	}
 }

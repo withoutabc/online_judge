@@ -12,13 +12,13 @@ func InitRouter() {
 	{
 		u.POST("/register", Register)
 		u.POST("/login", Login)
-		u.GET("/refresh", Refresh)
+		u.GET("/refresh", middleware.JWTAuthMiddleware(), Refresh)
 		u.POST("/password/:uid", middleware.JWTAuthMiddleware(), ChangePassword)
 	}
 	p := r.Group("/problem")
 	{
 		p.POST("/add/:uid", middleware.JWTAuthMiddleware(), AddProblem)
-		p.GET("/view", ViewProblem)
+		p.GET("/search", SearchProblem)
 		p.PUT("/update/:uid", middleware.JWTAuthMiddleware(), UpdateProblem)
 	}
 	s := r.Group("/submission")

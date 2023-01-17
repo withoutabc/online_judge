@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"online_judge/model"
 	"online_judge/service"
 	"online_judge/util"
@@ -45,7 +46,7 @@ func Submit(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	util.RespOK(c)
+	util.RespOK(c, "submit success")
 }
 
 func ViewResult(c *gin.Context) {
@@ -64,5 +65,9 @@ func ViewResult(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
-	util.ViewSubmissions(c, "view result successfully", submissions)
+	c.JSON(http.StatusOK, model.RespSubmission{
+		Status: 200,
+		Info:   "view result success",
+		Data:   submissions,
+	})
 }
