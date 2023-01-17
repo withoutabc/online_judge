@@ -12,8 +12,8 @@ func InitRouter() {
 	{
 		u.POST("/register", Register)
 		u.POST("/login", Login)
-		u.GET("/refresh", middleware.JWTAuthMiddleware(), Refresh)
-		u.POST("/password/:uid", middleware.JWTAuthMiddleware(), ChangePassword)
+		u.POST("/refresh", middleware.JWTAuthMiddleware(), Refresh)
+		u.PUT("/password/:uid", middleware.JWTAuthMiddleware(), ChangePassword)
 	}
 	p := r.Group("/problem")
 	{
