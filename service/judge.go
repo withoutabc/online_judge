@@ -9,8 +9,6 @@ import (
 	"strconv"
 )
 
-var count int
-
 func Judge() {
 	//查找所有pending的submission
 	submissions, err := SearchPendingCode()
@@ -26,6 +24,7 @@ func Judge() {
 	//遍历每个submission，用submission对应的pid去找到所有的testcase,运行并输入
 	var submission model.Submission
 	for _, submission = range submissions {
+		count := 0
 		//把code写入code.go
 		err = ioutil.WriteFile("code.go", []byte(submission.Code), 0644)
 		if err != nil {
