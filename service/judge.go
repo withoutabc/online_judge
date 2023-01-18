@@ -44,7 +44,7 @@ func Judge() {
 			return
 		}
 		//遍历，依次传入input运行
-		for k, testcase := range testcases {
+		for _, testcase := range testcases {
 			fmt.Printf("input:%s\n", testcase.Input)
 			//写入input
 			err = ioutil.WriteFile("input.txt", []byte(testcase.Input), 0644)
@@ -95,20 +95,22 @@ func Judge() {
 			fmt.Println("run success")
 			//5.处理输出结果
 			result := out.String()
-			fmt.Printf("output:%s", result)
 			if result != testcase.Output {
+				fmt.Println("wrong")
 				err = UpdateStatus("Wrong Answer", strconv.Itoa(submission.Sid))
 				if err != nil {
 					fmt.Printf("update to wrong answer err:%v", err)
-					break
+					return
 				}
 				count++
-				if count == k+1 {
-					err = UpdateStatus("Accepted", strconv.Itoa(submission.Sid))
-					if err != nil {
-						fmt.Printf("update to accepted err:%v", err)
-						return
-					}
+				continue
+			}
+			if count == 0 {
+				fmt.Println("correct")
+				err = UpdateStatus("Accepted", strconv.Itoa(submission.Sid))
+				if err != nil {
+					fmt.Printf("update to accepted err:%v", err)
+					return
 				}
 			}
 		}

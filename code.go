@@ -1,19 +1,20 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
-func Factorial(n int) (v int) {
-	if n > 0 {
-		v = n * Factorial(n-1)
-		return v
-	}
-	return 1
-}
 func main() {
-	var n int
-	fmt.Scan(&n)
-	result := Factorial(n)
-	fmt.Println(result)
+	var str string
+	var i int
+	fmt.Scan(&str)
+	s := []rune(str) //汉字转换为字节
+	for i = 0; i < len(s)/2; i++ {
+		if s[i] != s[len(s)-i-1] {
+			break //第一次不同时终止i的递增
+		}
+	}
+	if i <= len(s)/2-1 {
+		fmt.Println(false)
+		return
+	}
+	fmt.Println(true)
 }

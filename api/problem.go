@@ -136,11 +136,27 @@ func UpdateProblem(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
+	//题号不存在
 	if problems == nil {
 		fmt.Printf("problems:nil\n")
 		util.NormErr(c, 400, "pid not exist")
 		return
 	}
+	//是否出现了相同的title
+	var problems1 []model.Problem
+	problems1, err = service.SearchProblems("")
+	if err != nil {
+		fmt.Printf("view problems err:%v", err)
+		util.RespInternalErr(c)
+		return
+	}
+	for _, problem := range problems1 {
+		if problem.Title == p.Title {
+			util.NormErr(c, 400, "same title")
+			return
+		}
+	}
+	//修改后信息都重复
 	if service.CheckStruct(problems, p) {
 		util.NormErr(c, 400, "repeated problem")
 		return

@@ -53,7 +53,7 @@ func SearchTestcase(uid string, pid string) (testcases []model.Testcase, err err
 func UpdateTestcase(t model.Testcase) (err error) {
 	var Sql strings.Builder
 	var arg []interface{}
-	Sql.WriteString("update product set")
+	Sql.WriteString("update testcase set")
 	if t.Input != "" {
 		if len(arg) > 0 {
 			Sql.WriteString(",")
@@ -68,9 +68,10 @@ func UpdateTestcase(t model.Testcase) (err error) {
 		Sql.WriteString(" output=?")
 		arg = append(arg, t.Output)
 	}
-	Sql.WriteString(" where pid=? and uid=?")
+	Sql.WriteString(" where pid=? and uid=? and tid=?")
 	arg = append(arg, t.Pid)
 	arg = append(arg, t.Uid)
+	arg = append(arg, t.Tid)
 	fmt.Println(Sql.String())
 	_, err = DB.Exec(Sql.String(), arg...)
 	return

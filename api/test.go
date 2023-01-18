@@ -7,6 +7,7 @@ import (
 	"online_judge/model"
 	"online_judge/service"
 	"online_judge/util"
+	"strconv"
 )
 
 func AddTestcase(c *gin.Context) {
@@ -75,19 +76,27 @@ func UpdateTestcase(c *gin.Context) {
 	}
 	//获取修改信息
 	pid := c.PostForm("pid")
+	Tid := c.PostForm("tid")
 	input := c.PostForm("input")
 	output := c.PostForm("output")
-	t := model.Testcase{
-		Uid:    uid,
-		Pid:    pid,
-		Input:  input,
-		Output: output,
-	}
-	//pid不能为空
-	if pid == "" {
+	//不能为空
+	if pid == "" || Tid == "" {
 		util.RespParamErr(c)
 		return
 	}
+	tid, err := strconv.Atoi(Tid)
+	if err != nil {
+		util.NormErr(c, 400, "invalid tid")
+		return
+	}
+	t := model.Testcase{
+		Uid:    uid,
+		Pid:    pid,
+		Tid:    tid,
+		Input:  input,
+		Output: output,
+	}
+
 	//input output 不能都为空
 	if input == "" && output == "" {
 		util.NormErr(c, 400, "fail to update")
@@ -96,6 +105,7 @@ func UpdateTestcase(c *gin.Context) {
 	//input和output不能同时重复
 	testcases, err := service.SearchTestcase(uid, pid)
 	if err != nil {
+		fmt.Printf("search testcase error:%v", err)
 		util.RespInternalErr(c)
 		return
 	}
@@ -112,6 +122,7 @@ func UpdateTestcase(c *gin.Context) {
 		util.RespInternalErr(c)
 		return
 	}
+	util.RespOK(c, "update testcase success")
 }
 
 func DeleteTestcase(c *gin.Context) {
