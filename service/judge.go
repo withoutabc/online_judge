@@ -7,6 +7,7 @@ import (
 	"online_judge/model"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 func Judge() {
@@ -94,8 +95,7 @@ func Judge() {
 			}
 			fmt.Println("run success")
 			//5.处理输出结果
-			result := out.String()
-			if result != testcase.Output {
+			if strings.TrimSpace(out.String()) != testcase.Output {
 				fmt.Println("wrong")
 				err = UpdateStatus("Wrong Answer", strconv.Itoa(submission.Sid))
 				if err != nil {
