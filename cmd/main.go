@@ -10,7 +10,7 @@ import (
 func main() {
 	dao.InitDB()
 	go func() {
-		ticker := time.NewTicker(time.Second * 2)
+		ticker := time.NewTicker(time.Minute * 2)
 		for range ticker.C {
 			service.Judge()
 		}
