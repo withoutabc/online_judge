@@ -1,207 +1,132 @@
 package api
 
 import (
-	"bytes"
-	"database/sql"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"log"
-	"net/http"
 	"online_judge/model"
 	"online_judge/service"
 	"online_judge/util"
 	"strconv"
 )
 
-func Register(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-	confPassword := c.PostForm("confirm_password")
-	//判断是否有效输入
-	if username == "" || password == "" || confPassword == "" {
-		util.RespParamErr(c)
-		return
-	}
-	//检索数据库
-	u, err := service.SearchUserByUsername(username)
-	if err != nil && err != sql.ErrNoRows {
-		log.Printf("search user error:%v", err)
-		util.RespInternalErr(c)
-		return
-	}
-	//用户是否存在
-	if u.Username != "" {
-		util.NormErr(c, 400, "user has existed")
-		return
-	}
-	//两次密码是否一致
-	if confPassword != password {
-		util.NormErr(c, 400, "different password")
-		return
-	}
-	//生成盐值
-	var salt []byte
-	salt, err = service.GenerateSalt()
-	if err != nil {
-		util.RespInternalErr(c)
-		return
-	}
-	//加密
-	hashedPassword := service.HashWithSalt(password, salt)
-	//用户信息写入数据库
-	err = service.CreateUser(model.User{
-		Username: username,
-		Password: hashedPassword,
-		Salt:     salt,
-	})
-	if err != nil {
-		fmt.Printf("create user err:%v", err)
-		util.RespInternalErr(c)
-		return
-	}
-	util.RespOK(c, "register success")
+type UserServiceImpl struct {
+	UserService
 }
 
-func Login(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-	//有效输入
-	if username == " " || password == "" {
-		util.RespParamErr(c)
-		return
+func NewUserApi() *UserServiceImpl {
+	return &UserServiceImpl{
+		UserService: service.NewUserServiceImpl(),
 	}
-	//查找用户
-	u, err := service.SearchUserByUsername(username)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			util.NormErr(c, 400, "user don't exist")
-		} else {
-			log.Printf("search user error:%v", err)
-			util.RespInternalErr(c)
-			return
-		}
-		return
-	}
-	//对输入密码加密
-	hashedPassword := service.HashWithSalt(password, u.Salt)
-	//转化密码，对比
-	if bytes.Equal(hashedPassword, u.Password) == false {
-		util.NormErr(c, 400, "wrong password")
-		return
-	}
-	// 正确则登录成功
-	aToken, rToken, _ := service.GenToken(strconv.Itoa(u.Uid))
-	c.JSON(http.StatusOK, model.RespLogin{
-		Status: 200,
-		Info:   "login success",
-		Data: model.Login{
-			Uid:          u.Uid,
-			Token:        aToken,
-			RefreshToken: rToken,
-		},
-	})
 }
 
-func Refresh(c *gin.Context) {
-	//refresh_token
-	rToken := c.PostForm("refresh_token")
-	if rToken == "" {
-		util.RespParamErr(c)
-		return
-	}
-	_, err := service.ParseToken(rToken)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status": 2005,
-			"info":   "无效的Token",
-		})
-		return
-	}
-	//生成新的token
-	newAToken, newRToken, err := service.RefreshToken(rToken)
-	if err != nil {
-		fmt.Printf("err:%v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"info":   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, model.RespToken{
-		Status: 200,
-		Info:   "refresh token success",
-		Data: model.Token{
-			Token:        newAToken,
-			RefreshToken: newRToken,
-		},
-	})
+type UserService interface {
+	Register(user model.User) int
+	Login(user model.User) (model.RespLogin, int)
+	ChangePwd(pwd model.ReqChangePwd) int
 }
 
-func ChangePassword(c *gin.Context) {
+func (u *UserServiceImpl) Register(c *gin.Context) {
+	//receive
+	var user model.User
+	if err := c.ShouldBind(&user); err != nil {
+		util.NormErr(c, util.BindingQueryErrCode)
+		return
+	}
+	code := u.UserService.Register(user)
+	switch code {
+	case util.InternalServeErrCode:
+		util.RespInternalErr(c)
+		return
+	case util.RepeatedUsernameErrCode:
+		util.NormErr(c, util.RepeatedUsernameErrCode)
+		return
+	}
+	//response
+	util.RespOK(c)
+}
+
+func (u *UserServiceImpl) Login(c *gin.Context) {
+	//receive
+	var user model.User
+	if err := c.ShouldBind(&user); err != nil {
+		util.NormErr(c, util.BindingQueryErrCode)
+		return
+	}
+	respLogin, code := u.UserService.Login(user)
+	switch code {
+	case util.InternalServeErrCode:
+		util.Find()
+		util.RespInternalErr(c)
+		return
+	case util.NoRecordErrCode:
+		util.NormErr(c, util.NoRecordErrCode)
+		return
+	case util.WrongPasswordErrCode:
+		util.NormErr(c, util.WrongPasswordErrCode)
+		return
+	}
+	util.RespNormSuccess(c, respLogin)
+}
+
+func (u *UserServiceImpl) ChangePassword(c *gin.Context) {
 	//获取参数
-	uid := c.Param("uid")
-	password := c.PostForm("password")
-	newPassword := c.PostForm("new_password")
-	confPassword := c.PostForm("confirm_password")
-	//有效输入
-	if password == "" || newPassword == "" || confPassword == "" {
-		util.RespParamErr(c)
-		return
-	}
-	//密码是否一致
-	if confPassword != newPassword {
-		util.NormErr(c, 400, "different password")
-		return
-	}
-	if password == newPassword {
-		util.NormErr(c, 400, "same password")
-		return
-	}
-	//检索用户处理
-	u, err := service.SearchUserByUid(uid)
+	userId := c.Param("user_id")
+	IntUserId, err := strconv.ParseInt(userId, 10, 64)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			util.NormErr(c, 400, "user don't exist")
-		} else {
-			log.Printf("search user error:%v", err)
-			util.RespInternalErr(c)
-			return
-		}
+		util.NormErr(c, util.IdNotIntegral)
 		return
 	}
-	//对输入密码加密
-	hashedPassword := service.HashWithSalt(password, u.Salt)
-	//判断密码
-	if bytes.Equal(hashedPassword, u.Password) == false {
-		util.NormErr(c, 400, "wrong password")
+	var pwd model.ReqChangePwd
+	if err := c.ShouldBind(&pwd); err != nil {
+		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
-	//密码正确,生成盐值
-	u, err = service.SearchUserByUid(uid)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			util.NormErr(c, 400, "user don't exist")
-		} else {
-			log.Printf("search user error:%v", err)
-			util.RespInternalErr(c)
-			return
-		}
-		return
-	}
-	var salt []byte
-	salt, err = service.GenerateSalt()
-	if err != nil {
+	pwd.UserId = IntUserId
+	code := u.UserService.ChangePwd(pwd)
+	switch code {
+	case util.InternalServeErrCode:
 		util.RespInternalErr(c)
 		return
-	}
-	//加密
-	hashedPassword = service.HashWithSalt(newPassword, salt)
-	//修改密码和盐值
-	err = service.ChangePassword(hashedPassword, u.Username, salt)
-	if err != nil {
-		log.Printf("update password error:%v", err)
-		util.RespInternalErr(c)
+	case util.NoRecordErrCode:
+		util.NormErr(c, util.NoRecordErrCode)
+		return
+	case util.WrongPasswordErrCode:
+		util.NormErr(c, util.WrongPasswordErrCode)
 		return
 	}
-	util.RespOK(c, "change password success")
+	util.RespOK(c)
 }
+
+//func Refresh(c *gin.Context) {
+//	//refresh_token
+//	rToken := c.PostForm("refresh_token")
+//	if rToken == "" {
+//		util.RespParamErr(c)
+//		return
+//	}
+//	_, err := service.ParseToken(rToken)
+//	if err != nil {
+//		c.JSON(http.StatusBadRequest, gin.H{
+//			"status": 2005,
+//			"info":   "无效的Token",
+//		})
+//		return
+//	}
+//	//生成新的token
+//	newAToken, newRToken, err := service.RefreshToken(rToken)
+//	if err != nil {
+//		fmt.Printf("err:%v", err)
+//		c.JSON(http.StatusBadRequest, gin.H{
+//			"status": 400,
+//			"info":   err.Error(),
+//		})
+//		return
+//	}
+//	c.JSON(http.StatusOK, model.RespToken{
+//		Status: 200,
+//		Info:   "refresh token success",
+//		Data: model.Token{
+//			Token:        newAToken,
+//			RefreshToken: newRToken,
+//		},
+//	})
+//}

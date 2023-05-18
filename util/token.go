@@ -1,4 +1,4 @@
-package service
+package util
 
 import (
 	"errors"
@@ -14,10 +14,10 @@ func keyFunc(*jwt.Token) (i interface{}, err error) {
 }
 
 // GenToken GenToken生成aToken和rToken
-func GenToken(uid string) (aToken, rToken string, err error) {
+func GenToken(userId int64) (aToken, rToken string, err error) {
 	// 创建一个我们自己的声明
 	c := model.MyClaims{
-		Uid: uid, // 自定义字段
+		UserId: userId, // 自定义字段
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour).Unix(), // 过期时间
 			Issuer:    "YJX",                            // 签发人
@@ -44,7 +44,7 @@ func RefreshToken(rToken string) (newAToken, newRToken string, err error) {
 		}
 	}
 	//生成新的token
-	newAToken, newRToken, err = GenToken(claims.Uid)
+	newAToken, newRToken, err = GenToken(claims.UserId)
 	if err != nil {
 		return "", "", err
 	}

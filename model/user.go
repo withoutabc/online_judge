@@ -1,15 +1,55 @@
 package model
 
-import "github.com/dgrijalva/jwt-go"
+import (
+	"github.com/bwmarrin/snowflake"
+	"github.com/dgrijalva/jwt-go"
+	"gorm.io/gorm"
+	"log"
+)
 
 type User struct {
-	Uid      int    `json:"uid"`
-	Username string `json:"username"`
-	Password []byte `json:"password"`
-	Salt     []byte `json:"salt"`
+	UserId   int64  `json:"user_id" form:"user_id" gorm:"primarykey" `
+	Username string `json:"username" form:"username" binding:"required" gorm:"type:varchar(40);not null"`
+	Password string `json:"password" form:"password" binding:"required" gorm:"not null;type:longblob"`
+	Salt     []byte `json:"salt" form:"salt" gorm:"not null"`
+	Correct  int64  `json:"correct" form:"correct" gorm:"default:0;not null"`
+	Score    int64  `json:"score" form:"score" gorm:"default:0;not null"`
 }
 
 type MyClaims struct {
-	Uid string `json:"uid"`
+	UserId int64  `json:"user_id"`
+	Role   string `json:"role"`
 	jwt.StandardClaims
+}
+
+//request
+
+type ReqChangePwd struct {
+	UserId      int64  `json:"user_id"`
+	OldPassword string `json:"old_password" form:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" form:"new_password" binding:"required"`
+}
+
+//response
+
+type RespLogin struct {
+	UserId    int64  `json:"user_id"`
+	LoginTime string `json:"login_time"`
+	Token     string `json:"token"`
+}
+
+// BeforeCreate uses snowflake to generate an ID.
+func (u *User) BeforeCreate(_ *gorm.DB) (err error) {
+	// skip if the accountID already set.
+	if u.UserId != 0 {
+		return nil
+	}
+	sf, err := snowflake.NewNode(0)
+	if err != nil {
+		log.Fatalf("generate id failed: %s", err.Error())
+		return err
+	}
+	u.UserId = sf.Generate().Int64()
+	u.Score = 0
+	return nil
 }

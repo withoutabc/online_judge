@@ -1,17 +1,5 @@
 package model
 
-type RespLogin struct {
-	Status int    `json:"status"`
-	Info   string `json:"info"`
-	Data   Login  `json:"data"`
-}
-
-type Login struct {
-	Uid          int    `json:"uid"`
-	Token        string `json:"token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
 type RespProblem struct {
 	Status int       `json:"status"`
 	Info   string    `json:"info"`

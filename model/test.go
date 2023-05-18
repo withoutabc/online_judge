@@ -1,9 +1,9 @@
 package model
 
 type Testcase struct {
-	Tid    int    `json:"tid"`
-	Pid    string `json:"pid"`
-	Uid    string `json:"uid"`
-	Input  string `json:"input"`
-	Output string `json:"output"`
+	TestId    int    `json:"test_id" form:"test_id"`
+	ProblemId string `json:"problem_id" form:"test_id"`
+	UserId    string `json:"user_id" form:"user_id"`
+	Input     string `json:"input" form:"input"`
+	Output    string `json:"output" form:"output"`
 }

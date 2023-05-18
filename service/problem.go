@@ -1,55 +1,63 @@
 package service
 
 import (
+	"gorm.io/gorm"
 	"online_judge/dao"
 	"online_judge/model"
+	"online_judge/util"
 )
 
-func AddProblem(p model.Problem) (err error) {
-	err = dao.InsertProblem(p)
-	return
-}
-
-func SearchProblems(pid string) (problems []model.Problem, err error) {
-	problems, err = dao.SearchProblems(pid)
-	return
-}
-
-func UpdateProblem(p model.Problem) (err error) {
-	err = dao.UpdateProblem(p)
-	return
-}
-
-func CheckStruct(s []model.Problem, existing model.Problem) bool {
-	for _, v := range s {
-		match := true
-		if existing.Title != "" && v.Title != existing.Title {
-			match = false
-		}
-		if existing.Description != "" && v.Description != existing.Description {
-			match = false
-		}
-		if existing.DescriptionInput != "" && v.DescriptionInput != existing.DescriptionInput {
-			match = false
-		}
-		if existing.DescriptionOutput != "" && v.DescriptionOutput != existing.DescriptionOutput {
-			match = false
-		}
-		if existing.SampleInput != "" && v.SampleInput != existing.SampleInput {
-			match = false
-		}
-		if existing.SampleOutput != "" && v.SampleOutput != existing.SampleOutput {
-			match = false
-		}
-		if existing.TimeLimit != 0.0 && v.TimeLimit != existing.TimeLimit {
-			match = false
-		}
-		if existing.MemoryLimit != 0.0 && v.MemoryLimit != existing.MemoryLimit {
-			match = false
-		}
-		if match {
-			return true
-		}
+func NewProblemServiceImpl() *ProblemDaoImpl {
+	return &ProblemDaoImpl{
+		ProblemDao: dao.NewProblemDao(),
 	}
-	return false
+}
+
+type ProblemDao interface {
+	CreateProblem(problem *model.Problem) error
+	SearchProblem(request model.ReqSearchProblem) (problems []model.Problem, err error)
+	UpdateProblem(problemId int64, problem *model.Problem) error
+	DeleteProblem(problemId int64) error
+}
+
+type ProblemDaoImpl struct {
+	ProblemDao
+}
+
+func (p *ProblemDaoImpl) AddProblem(problem model.Problem) int {
+	if err := p.ProblemDao.CreateProblem(&problem); err != nil {
+		return util.InternalServeErrCode
+	}
+	return util.NoErrCode
+}
+
+func (p *ProblemDaoImpl) SearchProblem(request model.ReqSearchProblem) (problems []model.Problem, n int) {
+	problems, err := p.ProblemDao.SearchProblem(request)
+	if len(problems) == 0 {
+		return nil, util.NoRecordErrCode
+	}
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, util.NoRecordErrCode
+		}
+		return nil, util.InternalServeErrCode
+	}
+	return problems, util.NoErrCode
+}
+
+func (p *ProblemDaoImpl) UpdateProblem(problemId int64, problem model.Problem) int {
+	if err := p.ProblemDao.UpdateProblem(problemId, &problem); err != nil {
+		return util.InternalServeErrCode
+	}
+	return util.NoErrCode
+}
+
+func (p *ProblemDaoImpl) DeleteProblem(problemId int64) int {
+	//delete testcase
+
+	//delete problem
+	if err := p.ProblemDao.DeleteProblem(problemId); err != nil {
+		return util.InternalServeErrCode
+	}
+	return util.NoErrCode
 }

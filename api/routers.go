@@ -10,30 +10,33 @@ func InitRouter() {
 	r.Use(middleware.CORS())
 	u := r.Group("/user")
 	{
-		u.POST("/register", Register)
-		u.POST("/login", Login)
-		u.POST("/refresh", middleware.JWTAuthMiddleware(), Refresh)
-		u.PUT("/password/:uid", middleware.JWTAuthMiddleware(), ChangePassword)
+		uapi := NewUserApi()
+		u.POST("/register", uapi.Register)
+		u.POST("/login", uapi.Login)
+		//u.POST("/refresh", middleware.JWTAuthMiddleware(), Refresh)
+		u.POST("/password/:user_id", uapi.ChangePassword)
 	}
+
 	p := r.Group("/problem")
 	{
-		p.POST("/add/:uid", middleware.JWTAuthMiddleware(), AddProblem)
-		p.GET("/search", SearchProblem)
-		p.PUT("/update/:uid", middleware.JWTAuthMiddleware(), UpdateProblem)
+		papi := NewProblemApi()
+		p.POST("/add", papi.AddProblem)
+		p.GET("/search", papi.SearchProblem)
+		p.PUT("/update/:problem_id", papi.UpdateProblem)
+		p.DELETE("/delete/:problem_id", papi.DeleteProblem)
 	}
-	s := r.Group("/submission")
-	{
-		s.Use(middleware.JWTAuthMiddleware())
-		s.POST("/submit/:uid", Submit)
-		s.GET("/view/:uid", ViewResult)
-	}
-	t := r.Group("/test")
-	{
-		t.Use(middleware.JWTAuthMiddleware())
-		t.POST("/add/:uid", AddTestcase)
-		t.GET("/view/:uid", ViewTestcases)
-		t.PUT("/update/:uid", UpdateTestcase)
-		t.DELETE("/delete/:uid", DeleteTestcase)
-	}
-	r.Run()
+	//s := r.Group("/submission")
+	//{
+	//	s.POST("/submit/:user_id", Submit)
+	//	s.GET("/view/:uid", ViewResult)
+	//}
+	//t := r.Group("/test")
+	//{
+	//	t.Use(middleware.JWTAuthMiddleware())
+	//	t.POST("/add/:uid", AddTestcase)
+	//	t.GET("/view/:uid", ViewTestcases)
+	//	t.PUT("/update/:uid", UpdateTestcase)
+	//	t.DELETE("/delete/:uid", DeleteTestcase)
+	//}
+	r.Run(":10")
 }

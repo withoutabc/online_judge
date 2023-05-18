@@ -1,19 +1,40 @@
 package dao
 
 import (
-	"database/sql"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
+	"online_judge/model"
 )
 
-var DB *sql.DB
+var DB *gorm.DB
 
+//func InitDB() {
+//	db, err := sql.Open("mysql", "root:224488@tcp(127.0.0.1:3306)/online_judge?charset=utf8mb4&loc=Local&parseTime=true")
+//	if err != nil {
+//		log.Fatalf("connect mysql error:%v", err)
+//	}
+//	DB = db
+//	fmt.Println(db.Ping())
+//}
+
+// InitDB gorm连接
 func InitDB() {
-	db, err := sql.Open("mysql", "root:224488@tcp(127.0.0.1:3306)/online_judge?charset=utf8mb4&loc=Local&parseTime=true")
+	dsn := "root:224488@tcp(127.0.0.1:3306)/online_judge?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		PrepareStmt: true,
+	})
 	if err != nil {
-		log.Fatalf("connect mysql error:%v", err)
+		panic("failed to connect database")
 	}
 	DB = db
-	fmt.Println(db.Ping())
+	log.Println("连接成功")
+	AutoMigrate()
+}
+
+func AutoMigrate() {
+	DB.AutoMigrate(&model.User{})
+	DB.AutoMigrate(&model.Problem{})
+	DB.AutoMigrate(&model.Submission{})
 }

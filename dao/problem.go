@@ -1,106 +1,64 @@
 package dao
 
 import (
-	"database/sql"
 	"fmt"
+	"gorm.io/gorm"
 	"online_judge/model"
-	"strings"
 )
 
-func InsertProblem(p model.Problem) (err error) {
-	_, err = DB.Exec("insert into problem (title,description,description_input,description_output,sample_input,sample_output,time_limit,memory_limit,uid) values (?,?,?,?,?,?,?,?,?)", p.Title, p.Description, p.DescriptionInput, p.DescriptionOutput, p.SampleInput, p.SampleOutput, p.TimeLimit, p.MemoryLimit, p.Uid)
-	return
-
+func NewProblemDao() *ProblemDaoImpl {
+	return &ProblemDaoImpl{
+		db: DB,
+	}
 }
 
-func SearchProblems(pid string) (problems []model.Problem, err error) {
-	var rows *sql.Rows
-	if pid == "" {
-		rows, err = DB.Query("select * from problem ")
-	} else {
-		rows, err = DB.Query("select * from problem where pid=?", pid)
-	}
-	if err != nil {
-		return nil, err
-	}
-	//处理查询结果
-	for rows.Next() {
-		var p model.Problem
-		if err = rows.Scan(&p.Pid, &p.Title, &p.Description, &p.DescriptionInput, &p.DescriptionOutput, &p.SampleInput, &p.SampleOutput, &p.TimeLimit, &p.MemoryLimit, &p.Uid); err != nil {
-			return nil, err
-		}
-		problems = append(problems, p)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return problems, nil
+type ProblemDaoImpl struct {
+	db *gorm.DB
 }
 
-func UpdateProblem(p model.Problem) (err error) {
-	var sql strings.Builder
-	var arg []interface{}
-	sql.WriteString("update problem set")
-	if p.Title != "" {
-		if len(arg) > 0 {
-			sql.WriteString(",")
-		}
-		sql.WriteString(" title=?")
-		arg = append(arg, p.Title)
-	}
-	if p.Description != "" {
-		if len(arg) > 0 {
-			sql.WriteString(",")
-		}
-		sql.WriteString(" description=?")
-		arg = append(arg, p.Description)
-	}
-	if p.DescriptionInput != "" {
-		if len(arg) > 0 {
-			sql.WriteString(",")
-		}
-		sql.WriteString(" description_input=?")
-		arg = append(arg, p.DescriptionInput)
-	}
-	if p.DescriptionOutput != "" {
-		if len(arg) > 0 {
-			sql.WriteString(",")
-		}
-		sql.WriteString(" description_output=?")
-		arg = append(arg, p.DescriptionOutput)
-	}
-	if p.SampleInput != "" {
-		if len(arg) > 0 {
-			sql.WriteString(",")
-		}
-		sql.WriteString(" sample_input=?")
-		arg = append(arg, p.SampleInput)
-	}
-	if p.SampleOutput != "" {
-		if len(arg) > 0 {
-			sql.WriteString(",")
-		}
-		sql.WriteString(" sample_output=?")
-		arg = append(arg, p.SampleOutput)
-	}
+func (p *ProblemDaoImpl) CreateProblem(problem *model.Problem) error {
+	result := DB.Create(&problem)
+	return result.Error
+}
 
-	if p.TimeLimit != 0 {
-		if len(arg) > 0 {
-			sql.WriteString(",")
-		}
-		sql.WriteString(" time_limit=?")
-		arg = append(arg, p.TimeLimit)
+func (p *ProblemDaoImpl) SearchProblem(req model.ReqSearchProblem) (problems []model.Problem, err error) {
+	cond := &model.Problem{}
+	if req.UserId != 0 {
+		cond.UserId = req.UserId
 	}
-	if p.MemoryLimit != 0 {
-		if len(arg) > 0 {
-			sql.WriteString(",")
-		}
-		sql.WriteString(" memory_limit=?")
-		arg = append(arg, p.MemoryLimit)
+	if req.Level != "" {
+		cond.Level = req.Level
 	}
-	sql.WriteString(" where pid=?")
-	arg = append(arg, p.Pid)
-	fmt.Println(sql.String())
-	_, err = DB.Exec(sql.String(), arg...)
-	return
+	if req.From != "" {
+		cond.UpdateTime = req.From
+	}
+	if req.To != "" {
+		cond.UpdateTime = req.To
+	}
+	if req.Keyword != "" {
+		cond.Title = fmt.Sprintf("%%%s%%", req.Keyword)
+	}
+	if req.Level != "" {
+		cond.Level = req.Level
+	}
+	result := p.db.Select("*").Where(cond).Find(&problems)
+	return problems, result.Error
+}
+
+func (p *ProblemDaoImpl) UpdateProblem(problemId int64, problem *model.Problem) error {
+	result := p.db.Take(&model.Problem{}).Where(&model.Problem{ProblemId: problemId}).Updates(model.Problem{
+		Title:             problem.Title,
+		Description:       problem.Description,
+		DescriptionInput:  problem.DescriptionInput,
+		DescriptionOutput: problem.DescriptionOutput,
+		SampleInput:       problem.SampleInput,
+		SampleOutput:      problem.SampleOutput,
+		Level:             problem.Level,
+	})
+	return result.Error
+}
+
+func (p *ProblemDaoImpl) DeleteProblem(problemId int64) error {
+	result := p.db.Table("problems").Delete(&model.Problem{ProblemId: problemId})
+	return result.Error
 }
