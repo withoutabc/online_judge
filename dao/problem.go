@@ -16,6 +16,11 @@ type ProblemDaoImpl struct {
 	db *gorm.DB
 }
 
+func (p *ProblemDaoImpl) AddProblemSubmit(tx *gorm.DB, problemId int64) error {
+	result := tx.Model(&model.Problem{}).Where(&model.Problem{ProblemId: problemId}).UpdateColumn("submit", gorm.Expr("submit + ?", 1))
+	return result.Error
+}
+
 func (p *ProblemDaoImpl) CreateProblem(problem *model.Problem) error {
 	result := DB.Create(&problem)
 	return result.Error
@@ -50,7 +55,7 @@ func (p *ProblemDaoImpl) SearchProblem(req model.ReqSearchProblem) (problems []m
 	return problems, result.Error
 }
 
-func (p *ProblemDaoImpl) UpdateProblem(problemId int64, problem *model.Problem) error {
+func (p *ProblemDaoImpl) UpdateProblem(problemId int64, problem *model.Problem) (int64, error) {
 	result := p.db.Take(&model.Problem{}).Where(&model.Problem{ProblemId: problemId}).Updates(model.Problem{
 		Title:             problem.Title,
 		Description:       problem.Description,
@@ -60,10 +65,10 @@ func (p *ProblemDaoImpl) UpdateProblem(problemId int64, problem *model.Problem) 
 		SampleOutput:      problem.SampleOutput,
 		Level:             problem.Level,
 	})
-	return result.Error
+	return result.RowsAffected, result.Error
 }
 
-func (p *ProblemDaoImpl) DeleteProblem(problemId int64) error {
-	result := p.db.Table("problems").Delete(&model.Problem{ProblemId: problemId})
-	return result.Error
+func (p *ProblemDaoImpl) DeleteProblem(tx *gorm.DB, problemId int64) (int64, error) {
+	result := tx.Table("problems").Where(&model.Problem{ProblemId: problemId}).Delete(&model.Problem{})
+	return result.RowsAffected, result.Error
 }

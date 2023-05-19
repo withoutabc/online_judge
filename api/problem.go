@@ -45,12 +45,10 @@ func (p *ProblemServiceImpl) AddProblem(c *gin.Context) {
 func (p *ProblemServiceImpl) SearchProblem(c *gin.Context) {
 	var request model.ReqSearchProblem
 	if err := c.ShouldBind(&request); err != nil {
-		util.Find()
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
 	if util.CheckTime(request.From, request.To) != nil {
-		util.Find()
 		util.NormErr(c, util.WrongTimeCode)
 		return
 	}
@@ -85,6 +83,9 @@ func (p *ProblemServiceImpl) UpdateProblem(c *gin.Context) {
 	case util.InternalServeErrCode:
 		util.RespInternalErr(c)
 		return
+	case util.UpdateFailErrCode:
+		util.NormErr(c, util.UpdateFailErrCode)
+		return
 	}
 	util.RespOK(c)
 }
@@ -102,107 +103,9 @@ func (p *ProblemServiceImpl) DeleteProblem(c *gin.Context) {
 	case util.InternalServeErrCode:
 		util.RespInternalErr(c)
 		return
+	case util.UpdateFailErrCode:
+		util.NormErr(c, util.UpdateFailErrCode)
+		return
 	}
 	util.RespOK(c)
 }
-
-//func SearchProblem(c *gin.Context) {
-//	pid := c.Query("pid")
-//	//查看题目
-//	problems, err := service.SearchProblems(pid)
-//	if err != nil {
-//		fmt.Printf("search problem err:%v", err)
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	c.JSON(http.StatusOK, model.RespProblem{
-//		Status: 200,
-//		Info:   "search problem success",
-//		Data:   problems,
-//	})
-//}
-//
-//func UpdateProblem(c *gin.Context) {
-//	//获取信息
-//	uid := c.Param("uid")
-//	Pid := c.PostForm("pid")
-//	if uid == "" || Pid == "" {
-//		util.RespParamErr(c)
-//		return
-//	}
-//	pid, err := strconv.Atoi(Pid)
-//	if err != nil {
-//		fmt.Println(err)
-//		util.NormErr(c, 400, "invalid pid")
-//		return
-//	}
-//	timeLimit := c.PostForm("time_limit")
-//	memoryLimit := c.PostForm("memory_limit")
-//	p := model.Problem{
-//		Pid:               pid,
-//		Title:             c.PostForm("title"),
-//		Description:       c.PostForm("description"),
-//		DescriptionInput:  c.PostForm("description_input"),
-//		DescriptionOutput: c.PostForm("description_output"),
-//		SampleInput:       c.PostForm("sample_input"),
-//		SampleOutput:      c.PostForm("sample_output"),
-//		Uid:               uid,
-//	}
-//	//都不填为更新失败
-//	if p.Title == "" && p.Description == "" && p.DescriptionInput == "" && p.DescriptionOutput == "" && p.SampleInput == "" && p.SampleOutput == "" && timeLimit == "" && memoryLimit == "" {
-//		util.NormErr(c, 400, "fail to update")
-//		return
-//	}
-//	t, err := strconv.ParseFloat(timeLimit, 64)
-//	if timeLimit != "" && err != nil {
-//		util.NormErr(c, 400, "invalid time limit")
-//		return
-//	}
-//	var m float64
-//	m, err = strconv.ParseFloat(memoryLimit, 64)
-//	if memoryLimit != "" && err != nil {
-//		util.NormErr(c, 400, "invalid memory limit")
-//		return
-//	}
-//	p.TimeLimit = t
-//	p.MemoryLimit = m
-//	problems, err := service.SearchProblems(Pid)
-//	if err != nil {
-//		fmt.Printf("search problems err:%v", err)
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	//题号不存在
-//	if problems == nil {
-//		fmt.Printf("problems:nil\n")
-//		util.NormErr(c, 400, "pid not exist")
-//		return
-//	}
-//	//是否出现了相同的title
-//	var problems1 []model.Problem
-//	problems1, err = service.SearchProblems("")
-//	if err != nil {
-//		fmt.Printf("view problems err:%v", err)
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	for _, problem := range problems1 {
-//		if problem.Title == p.Title {
-//			util.NormErr(c, 400, "same title")
-//			return
-//		}
-//	}
-//	//修改后信息都重复
-//	if service.CheckStruct(problems, p) {
-//		util.NormErr(c, 400, "repeated problem")
-//		return
-//	}
-//	//修改题目
-//	err = service.UpdateProblem(p)
-//	if err != nil {
-//		fmt.Printf("update problem err:%v", err)
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	util.RespOK(c, "update problem success")
-//}

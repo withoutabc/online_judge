@@ -10,18 +10,23 @@ import (
 func NewProblemServiceImpl() *ProblemDaoImpl {
 	return &ProblemDaoImpl{
 		ProblemDao: dao.NewProblemDao(),
+		TestDao:    dao.NewTestDao(),
+		DB:         dao.GetDB(),
 	}
 }
 
 type ProblemDao interface {
 	CreateProblem(problem *model.Problem) error
 	SearchProblem(request model.ReqSearchProblem) (problems []model.Problem, err error)
-	UpdateProblem(problemId int64, problem *model.Problem) error
-	DeleteProblem(problemId int64) error
+	UpdateProblem(problemId int64, problem *model.Problem) (int64, error)
+	DeleteProblem(tx *gorm.DB, problemId int64) (int64, error)
+	AddProblemSubmit(tx *gorm.DB, problemId int64) error
 }
 
 type ProblemDaoImpl struct {
 	ProblemDao
+	TestDao
+	*gorm.DB
 }
 
 func (p *ProblemDaoImpl) AddProblem(problem model.Problem) int {
@@ -37,26 +42,53 @@ func (p *ProblemDaoImpl) SearchProblem(request model.ReqSearchProblem) (problems
 		return nil, util.NoRecordErrCode
 	}
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, util.NoRecordErrCode
-		}
 		return nil, util.InternalServeErrCode
 	}
 	return problems, util.NoErrCode
 }
 
 func (p *ProblemDaoImpl) UpdateProblem(problemId int64, problem model.Problem) int {
-	if err := p.ProblemDao.UpdateProblem(problemId, &problem); err != nil {
+	count, err := p.ProblemDao.UpdateProblem(problemId, &problem)
+	if err != nil {
 		return util.InternalServeErrCode
+	}
+	if count == 0 {
+		return util.UpdateFailErrCode
 	}
 	return util.NoErrCode
 }
 
 func (p *ProblemDaoImpl) DeleteProblem(problemId int64) int {
+	tx := p.DB.Begin()
 	//delete testcase
-
+	testcases, err := p.TestDao.SearchTestcase(problemId)
+	if err != nil || len(testcases) == 0 {
+		tx.Rollback()
+		return util.InternalServeErrCode
+	}
+	for _, testcase := range testcases {
+		count, err := p.TestDao.DeleteTestcase(tx, testcase.TestId)
+		if err != nil {
+			tx.Rollback()
+			return util.InternalServeErrCode
+		}
+		if count == 0 {
+			tx.Rollback()
+			return util.UpdateFailErrCode
+		}
+	}
 	//delete problem
-	if err := p.ProblemDao.DeleteProblem(problemId); err != nil {
+	count, err := p.ProblemDao.DeleteProblem(tx, problemId)
+	if err != nil {
+		tx.Rollback()
+		return util.InternalServeErrCode
+	}
+	if count == 0 {
+		tx.Rollback()
+		return util.UpdateFailErrCode
+	}
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return util.InternalServeErrCode
 	}
 	return util.NoErrCode

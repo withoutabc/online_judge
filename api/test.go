@@ -1,133 +1,103 @@
 package api
 
-//func AddTestcase(c *gin.Context) {
-//	uid := c.Param("uid")
-//	if uid == "" {
-//		util.RespParamErr(c)
-//		return
-//	}
-//	t := model.Testcase{
-//		Pid:    c.PostForm("pid"),
-//		Uid:    uid,
-//		Input:  c.PostForm("input"),
-//		Output: c.PostForm("output"),
-//	}
-//	if t.Pid == "" || t.Input == "" || t.Output == "" {
-//		util.RespParamErr(c)
-//		return
-//	}
-//	//输入或输出不得重复
-//	testcases, err := service.SearchTestcase(uid, t.Pid)
-//	if err != nil {
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	for _, testcase := range testcases {
-//		if testcase.Input == t.Input && testcase.Output == t.Output {
-//			util.NormErr(c, 400, "same or wrong testcase")
-//			return
-//		}
-//	}
-//	//添加
-//	err = service.AddTestcase(t)
-//	if err != nil {
-//		fmt.Printf("add testcase err:%v", err)
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	util.RespOK(c, "add testcase success")
-//}
-//
-//func ViewTestcases(c *gin.Context) {
-//	uid := c.Param("uid")
-//	if uid == "" {
-//		util.RespParamErr(c)
-//		return
-//	}
-//	//获取pid
-//	pid := c.Query("pid")
-//	testcases, err := service.SearchTestcase(uid, pid)
-//	if err != nil {
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	c.JSON(http.StatusOK, model.RespTestcase{
-//		Status: 200,
-//		Info:   "view testcase success",
-//		Data:   testcases,
-//	})
-//}
-//
-//func UpdateTestcase(c *gin.Context) {
-//	uid := c.Param("uid")
-//	if uid == "" {
-//		util.RespParamErr(c)
-//		return
-//	}
-//	//获取修改信息
-//	pid := c.PostForm("pid")
-//	Tid := c.PostForm("tid")
-//	input := c.PostForm("input")
-//	output := c.PostForm("output")
-//	//不能为空
-//	if pid == "" || Tid == "" {
-//		util.RespParamErr(c)
-//		return
-//	}
-//	tid, err := strconv.Atoi(Tid)
-//	if err != nil {
-//		util.NormErr(c, 400, "invalid tid")
-//		return
-//	}
-//	t := model.Testcase{
-//		Uid:    uid,
-//		Pid:    pid,
-//		Tid:    tid,
-//		Input:  input,
-//		Output: output,
-//	}
-//
-//	//input output 不能都为空
-//	if input == "" && output == "" {
-//		util.NormErr(c, 400, "fail to update")
-//		return
-//	}
-//	//input和output不能同时重复
-//	testcases, err := service.SearchTestcase(uid, pid)
-//	if err != nil {
-//		fmt.Printf("search testcase error:%v", err)
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	for _, testcase := range testcases {
-//		if testcase.Input == t.Input && testcase.Output == t.Output {
-//			util.NormErr(c, 400, "same or wrong testcase")
-//			return
-//		}
-//	}
-//	//执行修改
-//	err = service.UpdateTestcase(t)
-//	if err != nil {
-//		fmt.Printf("update testcase err:%v", err)
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	util.RespOK(c, "update testcase success")
-//}
-//
-//func DeleteTestcase(c *gin.Context) {
-//	uid := c.Param("uid")
-//	tid := c.Query("tid")
-//	if uid == "" || tid == "" {
-//		util.RespParamErr(c)
-//		return
-//	}
-//	//删除
-//	err := service.DeleteTestcase(uid, tid)
-//	if err != nil {
-//		fmt.Printf("delete testcase err:%v", err)
-//		util.RespInternalErr(c)
-//		return
-//	}
-//	util.RespOK(c, "delete testcase success")
-//}
+import (
+	"github.com/gin-gonic/gin"
+	"online_judge/model"
+	"online_judge/service"
+	"online_judge/util"
+	"strconv"
+)
+
+type TestServiceImpl struct {
+	TestService
+}
+
+func NewTestApi() *TestServiceImpl {
+	return &TestServiceImpl{
+		TestService: service.NewTestServiceImpl(),
+	}
+}
+
+type TestService interface {
+	AddTestcase(testcase model.Testcase) int
+	SearchTestcase(problemId int64) ([]model.Testcase, int)
+	UpdateTestcase(testcaseId int64, testcase model.Testcase) int
+	DeleteTestcase(testcaseId int64) int
+}
+
+func (t *TestServiceImpl) AddTestcase(c *gin.Context) {
+	var testcase model.Testcase
+	if err := c.ShouldBind(&testcase); err != nil {
+		util.NormErr(c, util.BindingQueryErrCode)
+		return
+	}
+	code := t.TestService.AddTestcase(testcase)
+	switch code {
+	case util.InternalServeErrCode:
+		util.NormErr(c, util.InternalServeErrCode)
+		return
+	}
+	util.RespOK(c)
+}
+
+func (t *TestServiceImpl) SearchTestcase(c *gin.Context) {
+	problemId := c.Param("problem_id")
+	IntProblemId, err := strconv.ParseInt(problemId, 10, 64)
+	if err != nil {
+		util.NormErr(c, util.IdNotIntegral)
+		return
+	}
+	testcases, code := t.TestService.SearchTestcase(IntProblemId)
+	switch code {
+	case util.InternalServeErrCode:
+		util.NormErr(c, util.InternalServeErrCode)
+		return
+	case util.NoRecordErrCode:
+		util.NormErr(c, util.NoRecordErrCode)
+		return
+	}
+	util.RespNormSuccess(c, testcases)
+}
+
+func (t *TestServiceImpl) UpdateTestcase(c *gin.Context) {
+	testcaseId := c.Param("test_id")
+	IntTestcaseId, err := strconv.ParseInt(testcaseId, 10, 64)
+	if err != nil {
+		util.NormErr(c, util.IdNotIntegral)
+		return
+	}
+	var testcase model.Testcase
+	if err = c.ShouldBind(&testcase); err != nil {
+		util.NormErr(c, util.BindingQueryErrCode)
+		return
+	}
+	code := t.TestService.UpdateTestcase(IntTestcaseId, testcase)
+	switch code {
+	case util.InternalServeErrCode:
+		util.RespInternalErr(c)
+		return
+	case util.UpdateFailErrCode:
+		util.NormErr(c, util.UpdateFailErrCode)
+		return
+	}
+	util.RespOK(c)
+}
+
+func (t *TestServiceImpl) DeleteTestcase(c *gin.Context) {
+	testcaseId := c.Param("test_id")
+	IntTestcaseId, err := strconv.ParseInt(testcaseId, 10, 64)
+	if err != nil {
+		util.NormErr(c, util.IdNotIntegral)
+		return
+	}
+	code := t.TestService.DeleteTestcase(IntTestcaseId)
+	switch code {
+	case util.InternalServeErrCode:
+		util.RespInternalErr(c)
+		return
+	case util.UpdateFailErrCode:
+		util.NormErr(c, util.UpdateFailErrCode)
+		return
+	}
+	util.RespOK(c)
+}

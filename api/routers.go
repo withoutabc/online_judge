@@ -28,16 +28,16 @@ func InitRouter() {
 	s := r.Group("/submission")
 	{
 		sapi := NewSubmissionApi()
-		s.POST("/submit/:user_id", sapi.Submit)
-		s.GET("/view/:uid", sapi.SearchSubmission)
+		s.POST("/submit", sapi.Submit)
+		s.GET("/search", sapi.SearchSubmission)
 	}
-	//t := r.Group("/test")
-	//{
-	//	t.Use(middleware.JWTAuthMiddleware())
-	//	t.POST("/add/:uid", AddTestcase)
-	//	t.GET("/view/:uid", ViewTestcases)
-	//	t.PUT("/update/:uid", UpdateTestcase)
-	//	t.DELETE("/delete/:uid", DeleteTestcase)
-	//}
-	r.Run(":10")
+	t := r.Group("/test")
+	{
+		sapi := NewTestApi()
+		t.POST("/add", sapi.AddTestcase)
+		t.GET("/search/:problem_id", sapi.SearchTestcase)
+		t.PUT("/update/:testcase_id", sapi.UpdateTestcase)
+		t.DELETE("/delete/:testcase_id", sapi.DeleteTestcase)
+	}
+	r.Run(":2333")
 }

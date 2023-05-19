@@ -7,6 +7,9 @@ import (
 )
 
 var ErrorCodeMap = map[int]error{
+	BlankAuthErrCode:       BlankAuthErr,
+	WrongAuthFormatErrCode: WrongAuthFormatErr,
+	InValidTokenErrCode:    InvalidTokenErr,
 
 	UnauthorizedErrCode:  UnauthorizedErr,
 	InternalServeErrCode: InternalServeErr,
@@ -15,6 +18,7 @@ var ErrorCodeMap = map[int]error{
 	NoRecordErrCode:         NoRecordErr,
 	RepeatedUsernameErrCode: RepeatedUsernameErr,
 	WrongPasswordErrCode:    WrongPasswordErr,
+	UpdateFailErrCode:       UpdateFailErr,
 
 	BindingQueryErrCode: BindingQueryErr,
 	WrongTimeCode:       WrongTimeCodeErr,
@@ -22,6 +26,10 @@ var ErrorCodeMap = map[int]error{
 }
 
 var (
+	BlankAuthErr       = errors.New("请求头中auth为空")
+	WrongAuthFormatErr = errors.New("请求头中auth格式有误")
+	InvalidTokenErr    = errors.New("无效的Token")
+
 	UnauthorizedErr  = errors.New("unauthorized")
 	InternalServeErr = errors.New("internal serve error")
 
@@ -29,6 +37,7 @@ var (
 	NoRecordErr         = errors.New("no record")
 	RepeatedUsernameErr = errors.New("repeated username")
 	WrongPasswordErr    = errors.New("wrong password")
+	UpdateFailErr       = errors.New("update failed")
 
 	BindingQueryErr   = errors.New("binding error")
 	WrongTimeCodeErr  = errors.New("wrong time")
@@ -41,10 +50,15 @@ const (
 	UnauthorizedErrCode  = 401
 	InternalServeErrCode = 500
 
+	BlankAuthErrCode       = 2003
+	WrongAuthFormatErrCode = 2004
+	InValidTokenErrCode    = 2005
+
 	IdNotIntegral           = 9999
 	NoRecordErrCode         = 10000
 	RepeatedUsernameErrCode = 10001
 	WrongPasswordErrCode    = 10002
+	UpdateFailErrCode       = 10003 //update or delete error
 
 	BindingQueryErrCode = 40000
 	WrongTimeCode       = 40001

@@ -38,3 +38,7 @@ func AutoMigrate() {
 	DB.AutoMigrate(&model.Problem{})
 	DB.AutoMigrate(&model.Submission{})
 }
+
+func GetDB() *gorm.DB {
+	return DB
+}

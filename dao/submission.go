@@ -15,8 +15,8 @@ type SubmissionDaoImpl struct {
 	db *gorm.DB
 }
 
-func (s *SubmissionDaoImpl) AddSubmission(submission *model.Submission) error {
-	result := s.db.Create(submission)
+func (s *SubmissionDaoImpl) AddSubmission(tx *gorm.DB, submission *model.Submission) error {
+	result := tx.Create(submission)
 	return result.Error
 }
 
