@@ -49,12 +49,6 @@ func (p *ProblemServiceImpl) SearchProblem(c *gin.Context) {
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
-	exist, _ := util.InArray(request.Level, []string{"极易", "容易", "中等", "困难", "极难"})
-	if !exist {
-		util.Find()
-		util.NormErr(c, util.WrongLevelCode)
-		return
-	}
 	if util.CheckTime(request.From, request.To) != nil {
 		util.Find()
 		util.NormErr(c, util.WrongTimeCode)

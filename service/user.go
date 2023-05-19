@@ -9,26 +9,6 @@ import (
 	"time"
 )
 
-//func SearchUserByUsername(username string) (u model.User, err error) {
-//	u, err = dao.SearchUserByUsername(username)
-//	return
-//}
-//
-//func SearchUserByUid(uid string) (u model.User, err error) {
-//	u, err = dao.SearchUserByUid(uid)
-//	return
-//}
-//
-//func CreateUser(u model.User) error {
-//	err := dao.InsertUser(u)
-//	return err
-//}
-//
-//func ChangePassword(newPassword []byte, username string, salt []byte) error {
-//	err := dao.UpdatePassword(newPassword, username, salt)
-//	return err
-//}
-
 type UserDao interface {
 	CreateUser(user *model.User) error
 	SearchUserById(uid int64) (user model.User, err error)

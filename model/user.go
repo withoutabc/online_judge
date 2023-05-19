@@ -8,12 +8,12 @@ import (
 )
 
 type User struct {
-	UserId   int64  `json:"user_id" form:"user_id" gorm:"primarykey" `
+	UserId   int64  `json:"user_id" form:"user_id" binding:"-" gorm:"primarykey" `
 	Username string `json:"username" form:"username" binding:"required" gorm:"type:varchar(40);not null"`
 	Password string `json:"password" form:"password" binding:"required" gorm:"not null;type:longblob"`
-	Salt     []byte `json:"salt" form:"salt" gorm:"not null"`
-	Correct  int64  `json:"correct" form:"correct" gorm:"default:0;not null"`
-	Score    int64  `json:"score" form:"score" gorm:"default:0;not null"`
+	Salt     []byte `json:"salt" form:"salt" binding:"-" gorm:"not null"`
+	Correct  int64  `json:"correct" form:"correct" binding:"-" gorm:"default:0;not null"`
+	Score    int64  `json:"score" form:"score" binding:"-" gorm:"default:0;not null"`
 }
 
 type MyClaims struct {

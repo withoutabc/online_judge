@@ -8,7 +8,7 @@ import (
 )
 
 type Problem struct {
-	ProblemId         int64  `json:"problem_id" form:"problem_id" gorm:"primarykey"`
+	ProblemId         int64  `json:"problem_id" form:"problem_id" binding:"-" gorm:"primarykey"`
 	UserId            int64  `json:"user_id" form:"user_id" binding:"required" gorm:"not null"`
 	Title             string `json:"title" form:"title" binding:"required" gorm:"type:varchar(60);not null"`
 	Description       string `json:"description" form:"description" binding:"required" gorm:"type:longtext;not null"`
@@ -16,10 +16,10 @@ type Problem struct {
 	DescriptionOutput string `json:"description_output" form:"description_output" binding:"required" gorm:"type:longtext;not null"`
 	SampleInput       string `json:"sample_input" form:"sample_input" binding:"required" gorm:"type:text;not null"`
 	SampleOutput      string `json:"sample_output" form:"sample_output" binding:"required" gorm:"type:text;not null"`
-	Level             string `json:"level" form:"level" binding:"required" gorm:"check_constraint:level IN('极易','容易','中等','困难','极难');not null;type:varchar(20)"`
-	UpdateTime        string `json:"update_time" form:"update_time" gorm:"type:varchar(100)"`
-	Submit            int64  `json:"submit" form:"submit" gorm:"default:0"`
-	Correct           int64  `json:"correct" form:"correct" gorm:"default:0"`
+	Level             string `json:"level" form:"level" binding:"required;oneof='极易','容易','中等','困难','极难'" gorm:"check_constraint:level IN('极易','容易','中等','困难','极难');not null;type:varchar(20)"`
+	UpdateTime        string `json:"update_time" form:"update_time" binding:"-" gorm:"type:varchar(100)"`
+	Submit            int64  `json:"submit" form:"submit" binding:"-" gorm:"default:0"`
+	Correct           int64  `json:"correct" form:"correct" binding:"-" gorm:"default:0"`
 }
 
 type ReqSearchProblem struct {

@@ -22,26 +22,31 @@ func (p *ProblemDaoImpl) CreateProblem(problem *model.Problem) error {
 }
 
 func (p *ProblemDaoImpl) SearchProblem(req model.ReqSearchProblem) (problems []model.Problem, err error) {
-	cond := &model.Problem{}
+	cond := model.Problem{}
 	if req.UserId != 0 {
 		cond.UserId = req.UserId
+	}
+	if req.ProblemId != 0 {
+		cond.ProblemId = req.ProblemId
 	}
 	if req.Level != "" {
 		cond.Level = req.Level
 	}
-	if req.From != "" {
-		cond.UpdateTime = req.From
-	}
-	if req.To != "" {
-		cond.UpdateTime = req.To
+	if req.From != "" && req.To != "" {
+		fromStr := req.From
+		toStr := req.To
+		cond.UpdateTime = "update_time BETWEEN '" + fromStr + "' AND '" + toStr + "'"
+	} else if req.From != "" {
+		fromStr := req.From
+		cond.UpdateTime = "update_time >= '" + fromStr + "'"
+	} else if req.To != "" {
+		toStr := req.To
+		cond.UpdateTime = "update_time <= '" + toStr + "'"
 	}
 	if req.Keyword != "" {
 		cond.Title = fmt.Sprintf("%%%s%%", req.Keyword)
 	}
-	if req.Level != "" {
-		cond.Level = req.Level
-	}
-	result := p.db.Select("*").Where(cond).Find(&problems)
+	result := p.db.Model(&model.Problem{}).Where(&cond).Find(&problems)
 	return problems, result.Error
 }
 

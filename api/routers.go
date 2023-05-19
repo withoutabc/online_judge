@@ -25,11 +25,12 @@ func InitRouter() {
 		p.PUT("/update/:problem_id", papi.UpdateProblem)
 		p.DELETE("/delete/:problem_id", papi.DeleteProblem)
 	}
-	//s := r.Group("/submission")
-	//{
-	//	s.POST("/submit/:user_id", Submit)
-	//	s.GET("/view/:uid", ViewResult)
-	//}
+	s := r.Group("/submission")
+	{
+		sapi := NewSubmissionApi()
+		s.POST("/submit/:user_id", sapi.Submit)
+		s.GET("/view/:uid", sapi.SearchSubmission)
+	}
 	//t := r.Group("/test")
 	//{
 	//	t.Use(middleware.JWTAuthMiddleware())
