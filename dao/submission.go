@@ -16,6 +16,7 @@ type SubmissionDaoImpl struct {
 }
 
 func (s *SubmissionDaoImpl) AddSubmission(tx *gorm.DB, submission *model.Submission) error {
+	submission.Status = "待测评"
 	result := tx.Create(submission)
 	return result.Error
 }

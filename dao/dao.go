@@ -19,6 +19,8 @@ var DB *gorm.DB
 //	fmt.Println(db.Ping())
 //}
 
+//debian-sys-maint:ZF0kfsp5uMD2lVo7
+
 // InitDB gorm连接
 func InitDB() {
 	dsn := "root:224488@tcp(127.0.0.1:3306)/online_judge?charset=utf8mb4&parseTime=True&loc=Local"
@@ -37,6 +39,7 @@ func AutoMigrate() {
 	DB.AutoMigrate(&model.User{})
 	DB.AutoMigrate(&model.Problem{})
 	DB.AutoMigrate(&model.Submission{})
+	DB.AutoMigrate(&model.Testcase{})
 }
 
 func GetDB() *gorm.DB {

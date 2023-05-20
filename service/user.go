@@ -68,8 +68,6 @@ func (u *UserDaoImpl) Login(user model.User) (model.RespLogin, int) {
 	//if password right
 	if string(util.HashWithSalt(user.Password, mysqlUser.Salt)) != mysqlUser.Password {
 		util.Find()
-		log.Println(mysqlUser.Password)
-		log.Println(string(util.HashWithSalt(user.Password, mysqlUser.Salt)))
 		return model.RespLogin{}, util.WrongPasswordErrCode
 	}
 	//generate token

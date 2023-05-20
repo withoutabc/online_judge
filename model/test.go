@@ -8,7 +8,7 @@ import (
 
 type Testcase struct {
 	TestId    int64  `json:"test_id" form:"test_id" binding:"-" gorm:"primarykey"`
-	ProblemId int64  `json:"problem_id" form:"test_id" binding:"required" gorm:"not null"`
+	ProblemId int64  `json:"problem_id" form:"problem_id" binding:"required" gorm:"not null"`
 	UserId    int64  `json:"user_id" form:"user_id" binding:"required" gorm:"not null"`
 	Input     string `json:"input" form:"input" binding:"required" gorm:"not null"`
 	Output    string `json:"output" form:"output" binding:"required" gorm:"not null"`

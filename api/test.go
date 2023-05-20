@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"online_judge/model"
 	"online_judge/service"
 	"online_judge/util"
@@ -28,6 +29,7 @@ type TestService interface {
 func (t *TestServiceImpl) AddTestcase(c *gin.Context) {
 	var testcase model.Testcase
 	if err := c.ShouldBind(&testcase); err != nil {
+		log.Println(err)
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
@@ -60,7 +62,7 @@ func (t *TestServiceImpl) SearchTestcase(c *gin.Context) {
 }
 
 func (t *TestServiceImpl) UpdateTestcase(c *gin.Context) {
-	testcaseId := c.Param("test_id")
+	testcaseId := c.Param("testcase_id")
 	IntTestcaseId, err := strconv.ParseInt(testcaseId, 10, 64)
 	if err != nil {
 		util.NormErr(c, util.IdNotIntegral)
@@ -84,7 +86,7 @@ func (t *TestServiceImpl) UpdateTestcase(c *gin.Context) {
 }
 
 func (t *TestServiceImpl) DeleteTestcase(c *gin.Context) {
-	testcaseId := c.Param("test_id")
+	testcaseId := c.Param("testcase_id")
 	IntTestcaseId, err := strconv.ParseInt(testcaseId, 10, 64)
 	if err != nil {
 		util.NormErr(c, util.IdNotIntegral)

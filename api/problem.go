@@ -29,7 +29,6 @@ func (p *ProblemServiceImpl) AddProblem(c *gin.Context) {
 	//获取题目信息
 	var problem model.Problem
 	if err := c.ShouldBind(&problem); err != nil {
-		util.Find()
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
@@ -38,13 +37,16 @@ func (p *ProblemServiceImpl) AddProblem(c *gin.Context) {
 	case util.InternalServeErrCode:
 		util.RespInternalErr(c)
 		return
+	case util.RepeatedTitleErrCode:
+		util.NormErr(c, util.RepeatedTitleErrCode)
+		return
 	}
 	util.RespOK(c)
 }
 
 func (p *ProblemServiceImpl) SearchProblem(c *gin.Context) {
 	var request model.ReqSearchProblem
-	if err := c.ShouldBind(&request); err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
@@ -74,7 +76,6 @@ func (p *ProblemServiceImpl) UpdateProblem(c *gin.Context) {
 	}
 	var problem model.Problem
 	if err = c.ShouldBind(&problem); err != nil {
-		util.Find()
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
@@ -83,8 +84,14 @@ func (p *ProblemServiceImpl) UpdateProblem(c *gin.Context) {
 	case util.InternalServeErrCode:
 		util.RespInternalErr(c)
 		return
+	case util.NoRecordErrCode:
+		util.NormErr(c, util.NoRecordErrCode)
+		return
 	case util.UpdateFailErrCode:
 		util.NormErr(c, util.UpdateFailErrCode)
+		return
+	case util.RepeatedTitleErrCode:
+		util.NormErr(c, util.RepeatedTitleErrCode)
 		return
 	}
 	util.RespOK(c)
@@ -102,6 +109,9 @@ func (p *ProblemServiceImpl) DeleteProblem(c *gin.Context) {
 	switch code {
 	case util.InternalServeErrCode:
 		util.RespInternalErr(c)
+		return
+	case util.NoRecordErrCode:
+		util.NormErr(c, util.NoRecordErrCode)
 		return
 	case util.UpdateFailErrCode:
 		util.NormErr(c, util.UpdateFailErrCode)

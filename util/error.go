@@ -19,6 +19,7 @@ var ErrorCodeMap = map[int]error{
 	RepeatedUsernameErrCode: RepeatedUsernameErr,
 	WrongPasswordErrCode:    WrongPasswordErr,
 	UpdateFailErrCode:       UpdateFailErr,
+	RepeatedTitleErrCode:    RepeatedTitleErr,
 
 	BindingQueryErrCode: BindingQueryErr,
 	WrongTimeCode:       WrongTimeCodeErr,
@@ -38,6 +39,7 @@ var (
 	RepeatedUsernameErr = errors.New("repeated username")
 	WrongPasswordErr    = errors.New("wrong password")
 	UpdateFailErr       = errors.New("update failed")
+	RepeatedTitleErr    = errors.New("repeated title")
 
 	BindingQueryErr   = errors.New("binding error")
 	WrongTimeCodeErr  = errors.New("wrong time")
@@ -59,6 +61,7 @@ const (
 	RepeatedUsernameErrCode = 10001
 	WrongPasswordErrCode    = 10002
 	UpdateFailErrCode       = 10003 //update or delete error
+	RepeatedTitleErrCode    = 10004
 
 	BindingQueryErrCode = 40000
 	WrongTimeCode       = 40001

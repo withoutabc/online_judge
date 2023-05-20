@@ -24,13 +24,12 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			return
 		}
 		// parts[1]是获取到的tokenString，使用解析JWT的函数来解析
-		mc, err := util.ParseToken(parts[1])
+		_, err := util.ParseToken(parts[1])
 		if err != nil {
 			util.NormErr(c, util.InValidTokenErrCode)
 			c.Abort()
 			return
 		}
-		c.Set("user_id", mc.UserId)
 		c.Next()
 	}
 }

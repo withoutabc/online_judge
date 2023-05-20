@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"online_judge/model"
 	"online_judge/service"
 	"online_judge/util"
@@ -40,7 +41,8 @@ func (s *SubmissionServiceImpl) Submit(c *gin.Context) {
 
 func (s *SubmissionServiceImpl) SearchSubmission(c *gin.Context) {
 	var req model.ReqSearchSubmission
-	if err := c.ShouldBind(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println(err)
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
