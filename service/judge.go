@@ -45,35 +45,35 @@ package service
 //			}
 //			//docker步骤
 //			//1.构建镜像
-//			cmd := exec.Command("docker", "build", "-t", "go", ".")
+//			cmd1 := exec.Command("docker", "build", "-t", "go", ".")
 //			var out bytes.Buffer
-//			cmd.Stdout = &out
-//			err = cmd.Run()
+//			cmd1.Stdout = &out
+//			err = cmd1.Run()
 //			if err != nil {
 //				fmt.Printf("build image err:%v\n", err)
 //				return
 //			}
 //			fmt.Println("build image success")
 //			//2.复制input.txt
-//			cmd = exec.Command("docker", "cp", "input.txt", "Online_judge:go/src/app")
-//			err = cmd.Run()
+//			cmd1 = exec.Command("docker", "cp", "input.txt", "Online_judge:go/src/app")
+//			err = cmd1.Run()
 //			if err != nil {
 //				fmt.Printf("copy input.txt err:%v\n", err)
 //				return
 //			}
 //			fmt.Println("copy input.txt success")
 //			//3.复制code.go
-//			cmd = exec.Command("docker", "cp", "code.go", "Online_judge:/go/src/app")
-//			err = cmd.Run()
+//			cmd1 = exec.Command("docker", "cp", "code.go", "Online_judge:/go/src/app")
+//			err = cmd1.Run()
 //			if err != nil {
 //				fmt.Println(err)
 //				return
 //			}
 //			fmt.Println("copy code.go success")
 //			//4.编译、运行
-//			cmd = exec.Command("docker", "exec", "Online_judge", "sh", "-c", "go build -o /go/src/app/main /go/src/app/code.go && /go/src/app/main < input.txt")
-//			cmd.Stdout = &out
-//			err = cmd.Run()
+//			cmd1 = exec.Command("docker", "exec", "Online_judge", "sh", "-c", "go build -o /go/src/app/exert /go/src/app/code.go && /go/src/app/exert < input.txt")
+//			cmd1.Stdout = &out
+//			err = cmd1.Run()
 //			if err != nil {
 //				fmt.Printf("run err:%v\n", err)
 //				err = UpdateStatus("Compile error", strconv.Itoa(submission.Sid))

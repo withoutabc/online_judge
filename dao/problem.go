@@ -94,6 +94,7 @@ func (p *ProblemDaoImpl) UpdateProblem(problemId int64, problem *model.Problem) 
 	})
 	return result.RowsAffected, result.Error
 }
+
 func (p *ProblemDaoImpl) DeleteProblem(tx *gorm.DB, problemId int64) (int64, error) {
 	result := tx.Model(&model.Problem{}).Where(&model.Problem{ProblemId: problemId}).Delete(&model.Problem{})
 	return result.RowsAffected, result.Error

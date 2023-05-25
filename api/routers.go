@@ -21,7 +21,7 @@ func InitRouter() {
 	{
 		papi := NewProblemApi()
 		p.POST("/add", middleware.JWTAuthMiddleware(), papi.AddProblem)
-		p.GET("/search", papi.SearchProblem)
+		p.POST("/search", papi.SearchProblem)
 		p.PUT("/update/:problem_id", middleware.JWTAuthMiddleware(), papi.UpdateProblem)
 		p.DELETE("/delete/:problem_id", middleware.JWTAuthMiddleware(), papi.DeleteProblem)
 	}
@@ -29,7 +29,7 @@ func InitRouter() {
 	{
 		sapi := NewSubmissionApi()
 		s.POST("/submit", middleware.JWTAuthMiddleware(), sapi.Submit)
-		s.GET("/search", middleware.JWTAuthMiddleware(), sapi.SearchSubmission)
+		s.POST("/search", middleware.JWTAuthMiddleware(), sapi.SearchSubmission)
 	}
 	t := r.Group("/test")
 	{
@@ -40,7 +40,13 @@ func InitRouter() {
 		t.PUT("/update/:testcase_id", sapi.UpdateTestcase)
 		t.DELETE("/delete/:testcase_id", sapi.DeleteTestcase)
 	}
-
+	i := r.Group("/info")
+	{
+		i.Use(middleware.JWTAuthMiddleware())
+		iapi := NewInfoApi()
+		i.GET("/get/:user_id", iapi.GetInfo)
+		i.PUT("/update", iapi.UpdateInfo)
+	}
 	r.GET("/ranking")
 	r.Run(":2333")
 }

@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"online_judge/model"
+	"online_judge/util"
 )
 
 var DB *gorm.DB
@@ -13,7 +14,7 @@ var DB *gorm.DB
 //func InitDB() {
 //	db, err := sql.Open("mysql", "root:224488@tcp(127.0.0.1:3306)/online_judge?charset=utf8mb4&loc=Local&parseTime=true")
 //	if err != nil {
-//		log.Fatalf("connect mysql error:%v", err)
+//		logs.Fatalf("connect mysql error:%v", err)
 //	}
 //	DB = db
 //	fmt.Println(db.Ping())
@@ -28,6 +29,7 @@ func InitDB() {
 		PrepareStmt: true,
 	})
 	if err != nil {
+		util.Log(err)
 		panic("failed to connect database")
 	}
 	DB = db
@@ -40,6 +42,7 @@ func AutoMigrate() {
 	DB.AutoMigrate(&model.Problem{})
 	DB.AutoMigrate(&model.Submission{})
 	DB.AutoMigrate(&model.Testcase{})
+	DB.AutoMigrate(&model.Info{})
 }
 
 func GetDB() *gorm.DB {

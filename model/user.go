@@ -1,10 +1,8 @@
 package model
 
 import (
-	"github.com/bwmarrin/snowflake"
 	"github.com/dgrijalva/jwt-go"
 	"gorm.io/gorm"
-	"log"
 )
 
 type User struct {
@@ -12,8 +10,6 @@ type User struct {
 	Username string `json:"username" form:"username" binding:"required" gorm:"type:varchar(40);not null"`
 	Password string `json:"password" form:"password" binding:"required" gorm:"not null;type:longblob"`
 	Salt     []byte `json:"salt" form:"salt" binding:"-" gorm:"not null"`
-	Correct  int64  `json:"correct" form:"correct" binding:"-" gorm:"default:0;not null"`
-	Score    int64  `json:"score" form:"score" binding:"-" gorm:"default:0;not null"`
 }
 
 type MyClaims struct {
@@ -41,15 +37,19 @@ type RespLogin struct {
 // BeforeCreate uses snowflake to generate an ID.
 func (u *User) BeforeCreate(_ *gorm.DB) (err error) {
 	// skip if the accountID already set.
-	if u.UserId != 0 {
-		return nil
-	}
-	sf, err := snowflake.NewNode(0)
-	if err != nil {
-		log.Fatalf("generate id failed: %s", err.Error())
-		return err
-	}
-	u.UserId = sf.Generate().Int64()
-	u.Score = 0
+	//if u.UserId != 0 {
+	//	return nil
+	//}
+	//sf, err := snowflake.NewNode(0)
+	//if err != nil {
+	//	log.Fatalf("generate id failed: %s", err.Error())
+	//	return err
+	//}
+	//u.UserId = sf.Generate().Int64()
+	return nil
+}
+
+func (u *User) AfterCreate(_ *gorm.DB) (err error) {
+
 	return nil
 }

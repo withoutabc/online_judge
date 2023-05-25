@@ -15,8 +15,8 @@ type UserDaoImpl struct {
 	db *gorm.DB
 }
 
-func (u *UserDaoImpl) CreateUser(user *model.User) error {
-	result := DB.Create(&user)
+func (u *UserDaoImpl) CreateUser(tx *gorm.DB, user *model.User) error {
+	result := tx.Create(&user)
 	return result.Error
 }
 

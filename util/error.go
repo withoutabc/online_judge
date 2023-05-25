@@ -3,7 +3,9 @@ package util
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
+	"online_judge/logs"
 )
 
 var ErrorCodeMap = map[int]error{
@@ -74,4 +76,8 @@ func NormErr(c *gin.Context, errCode int) {
 		Status: errCode,
 		Info:   ErrorCodeMap[errCode].Error(),
 	})
+}
+
+func Log(err error) {
+	logs.Log().Error("", zap.Error(err))
 }

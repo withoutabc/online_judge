@@ -1,9 +1,7 @@
 package model
 
 import (
-	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
-	"log"
 	"time"
 )
 
@@ -26,18 +24,23 @@ type ReqSearchSubmission struct {
 	To        string `json:"to" form:"to"`
 }
 
+type SubAndPro struct {
+	Submission
+	Problem
+}
+
 // BeforeCreate uses snowflake to generate an ID.
 func (s *Submission) BeforeCreate(_ *gorm.DB) (err error) {
 	// skip if the accountID already set.
-	if s.SubmissionId != 0 {
-		return nil
-	}
-	sf, err := snowflake.NewNode(0)
-	if err != nil {
-		log.Fatalf("generate id failed: %s", err.Error())
-		return err
-	}
-	s.SubmissionId = sf.Generate().Int64()
+	//if s.SubmissionId != 0 {
+	//	return nil
+	//}
+	//sf, err := snowflake.NewNode(0)
+	//if err != nil {
+	//	log.Fatalf("generate id failed: %s", err.Error())
+	//	return err
+	//}
+	//s.SubmissionId = sf.Generate().Int64()
 	s.SubmitTime = time.Now().Format("2006-01-02 15:04:05")
 	return nil
 }

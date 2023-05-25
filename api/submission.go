@@ -20,7 +20,7 @@ func NewSubmissionApi() *SubmissionServiceImpl {
 
 type SubmissionService interface {
 	AddSubmission(submission model.Submission) int
-	SearchSubmission(req model.ReqSearchSubmission) ([]model.Submission, int)
+	SearchSubmission(req model.ReqSearchSubmission) ([]model.SubAndPro, int)
 }
 
 func (s *SubmissionServiceImpl) Submit(c *gin.Context) {
@@ -46,7 +46,7 @@ func (s *SubmissionServiceImpl) SearchSubmission(c *gin.Context) {
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
-	submissions, code := s.SubmissionService.SearchSubmission(req)
+	subAndPros, code := s.SubmissionService.SearchSubmission(req)
 	switch code {
 	case util.InternalServeErrCode:
 		util.RespInternalErr(c)
@@ -55,5 +55,5 @@ func (s *SubmissionServiceImpl) SearchSubmission(c *gin.Context) {
 		util.NormErr(c, util.NoRecordErrCode)
 		return
 	}
-	util.RespNormSuccess(c, submissions)
+	util.RespNormSuccess(c, subAndPros)
 }

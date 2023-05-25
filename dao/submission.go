@@ -15,10 +15,21 @@ type SubmissionDaoImpl struct {
 	db *gorm.DB
 }
 
-func (s *SubmissionDaoImpl) AddSubmission(tx *gorm.DB, submission *model.Submission) error {
+func (s *SubmissionDaoImpl) LastSubmission() (int64, error) {
+	var Submission model.Submission
+	result := s.db.Model(&model.Submission{}).Last(&Submission)
+	return 0, result.Error
+}
+
+func (s *SubmissionDaoImpl) AddSubmission(tx *gorm.DB, submission *model.Submission) (int64, error) {
 	submission.Status = "待测评"
 	result := tx.Create(submission)
-	return result.Error
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	//var Submission model.Submission
+	//result = s.db.Model(&model.Submission{}).Last(&Submission)
+	return 0, nil
 }
 
 func (s *SubmissionDaoImpl) SearchSubmission(req model.ReqSearchSubmission) (submissions []model.Submission, err error) {
@@ -44,5 +55,11 @@ func (s *SubmissionDaoImpl) SearchSubmission(req model.ReqSearchSubmission) (sub
 		cond.SubmitTime = "update_time <= '" + toStr + "'"
 	}
 	result := s.db.Model(&model.Submission{}).Where(&cond).Find(&submissions)
+	return submissions, result.Error
+}
+
+func (s *SubmissionDaoImpl) FindCodeToJudge() ([]model.Submission, error) {
+	var submissions []model.Submission
+	result := DB.Model(&model.Submission{}).Where("status", "待测评").Find(&submissions)
 	return submissions, result.Error
 }

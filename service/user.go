@@ -10,7 +10,7 @@ import (
 )
 
 type UserDao interface {
-	CreateUser(user *model.User) error
+	CreateUser(tx *gorm.DB, user *model.User) error
 	SearchUserById(uid int64) (user model.User, err error)
 	SearchUserByName(username string) (user model.User, err error)
 	ChangePwd(uid int64, password string, salt []byte) error
@@ -19,11 +19,15 @@ type UserDao interface {
 func NewUserServiceImpl() *UserDaoImpl {
 	return &UserDaoImpl{
 		UserDao: dao.NewUserDao(),
+		InfoDao: dao.NewInfoDao(),
+		DB:      dao.GetDB(),
 	}
 }
 
 type UserDaoImpl struct {
 	UserDao
+	InfoDao
+	*gorm.DB
 }
 
 func (u *UserDaoImpl) Register(user model.User) int {
@@ -47,8 +51,25 @@ func (u *UserDaoImpl) Register(user model.User) int {
 	//用户信息写入数据库
 	user.Password = string(hashedPassword)
 	user.Salt = salt
-	if err = u.UserDao.CreateUser(&user); err != nil {
-		util.Find()
+	tx := u.DB.Begin()
+	if err = u.UserDao.CreateUser(tx, &user); err != nil {
+		tx.Rollback()
+		return util.InternalServeErrCode
+	}
+	//user, err = u.UserDao.SearchUserByName(name)
+	//if err != nil {
+	//	log.Println(err)
+	//	return util.InternalServeErrCode
+	//}
+	var info model.Info
+	info.UserId = user.UserId
+	//info.Uid = user.UserId
+	if err = u.InfoDao.AddInfo(tx, &info); err != nil {
+		tx.Rollback()
+		return util.InternalServeErrCode
+	}
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return util.InternalServeErrCode
 	}
 	return util.NoErrCode
