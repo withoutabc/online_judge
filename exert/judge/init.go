@@ -4,6 +4,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 	"online_judge/logs"
+	"online_judge/util"
 )
 
 var Conn *amqp.Connection
@@ -36,7 +37,7 @@ func QueueDeclare(ch *amqp.Channel) amqp.Queue {
 		nil,   // arguments
 	)
 	if err != nil {
-		logs.Log().Error("fail to declare a channel", zap.Error(err))
+		util.Log(err)
 		panic(err)
 	}
 	return q
@@ -53,7 +54,7 @@ func ExchangeDeclare(ch *amqp.Channel) {
 		nil,        // arguments
 	)
 	if err != nil {
-		logs.Log().Error("fail to declare a channel", zap.Error(err))
+		util.Log(err)
 		panic(err)
 	}
 }
@@ -67,6 +68,18 @@ func QueueBind(ch *amqp.Channel, queueName string, language string) {
 		nil,
 	)
 	if err != nil {
-		logs.Log().Error("fail to bind queue", zap.Error(err))
+		util.Log(err)
+		panic(err)
+	}
+}
+
+func Qos(ch *amqp.Channel) {
+	err := ch.Qos(
+		1,     // prefetch count
+		0,     // prefetch size
+		false, // global
+	)
+	if err != nil {
+		panic(err)
 	}
 }
