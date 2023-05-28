@@ -8,13 +8,11 @@ import (
 func NewTestDao() *TestDaoImpl {
 	return &TestDaoImpl{
 		db: DB,
-		tx: DB.Begin(),
 	}
 }
 
 type TestDaoImpl struct {
 	db *gorm.DB
-	tx *gorm.DB
 }
 
 func (t *TestDaoImpl) AddTestcase(testcase *model.Testcase) error {

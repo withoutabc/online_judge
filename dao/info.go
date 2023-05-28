@@ -15,6 +15,16 @@ type InfoDaoImpl struct {
 	db *gorm.DB
 }
 
+func (i *InfoDaoImpl) AddCorrect(userId int64) error {
+	result := i.db.Model(&model.Info{}).Where(&model.Info{UserId: userId}).UpdateColumn("correct", gorm.Expr("correct + ?", 1))
+	return result.Error
+}
+
+func (i *InfoDaoImpl) AddScore(userId int64, score int) error {
+	result := i.db.Model(&model.Info{}).Where(&model.Info{UserId: userId}).UpdateColumn("score", gorm.Expr("score + ?", score))
+	return result.Error
+}
+
 func (i *InfoDaoImpl) AddInfo(tx *gorm.DB, info *model.Info) error {
 	result := tx.Create(info)
 	return result.Error

@@ -2,8 +2,6 @@ package judge
 
 import (
 	amqp "github.com/rabbitmq/amqp091-go"
-	"go.uber.org/zap"
-	"online_judge/logs"
 	"online_judge/util"
 )
 
@@ -12,7 +10,7 @@ var Conn *amqp.Connection
 func InitRabbitMq() {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
-		logs.Log().Error("fail to init rabbitMq", zap.Error(err))
+		util.Log(err)
 		panic(err)
 	}
 	Conn = conn
@@ -21,7 +19,7 @@ func InitRabbitMq() {
 func ChannelDeclare() (ch *amqp.Channel) {
 	ch, err := Conn.Channel()
 	if err != nil {
-		logs.Log().Error("fail to open a channel", zap.Error(err))
+		util.Log(err)
 		panic(err)
 	}
 	return ch

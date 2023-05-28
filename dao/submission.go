@@ -15,10 +15,14 @@ type SubmissionDaoImpl struct {
 	db *gorm.DB
 }
 
-func (s *SubmissionDaoImpl) SearchSubmissionById(submissionId int64) (code string, err error) {
-	var submission model.Submission
+func (s *SubmissionDaoImpl) UpdateStatus(submissionId int64, status string) error {
+	result := s.db.Model(&model.Submission{}).Where(&model.Submission{SubmissionId: submissionId}).Update("status", status)
+	return result.Error
+}
+
+func (s *SubmissionDaoImpl) SearchSubmissionById(submissionId int64) (submission model.Submission, err error) {
 	result := s.db.Where(&model.Submission{SubmissionId: submissionId}).First(&submission)
-	return submission.Code, result.Error
+	return submission, result.Error
 }
 
 func (s *SubmissionDaoImpl) LastSubmission() (int64, error) {

@@ -15,30 +15,29 @@ import (
 func Produce() {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-
 	//读取待测评提交信息，
-	submissions, err := NewSubmissionServiceImpl().SubmissionDao.FindCodeToJudge()
+	submissions, err := NewJudImpl().SubmissionDao.FindCodeToJudge()
 	if err != nil {
 		util.Log(err)
 		panic(err)
 	}
+	if len(submissions) == 0 {
+		return
+	}
 	//获取每个提交信息的id
 	for _, submission := range submissions {
-		var (
-			value string
-			b     bool
-		)
-		value, b = redis.GetValueAndExistence(ctx, submission.SubmissionId)
+		var b bool
+		_, b = redis.GetValueAndExistence(ctx, submission.SubmissionId)
 		//有则直接continue
-		if b == true || value == "true" {
+		if b != false {
 			continue
 		}
 		//没有则写入redis缓存,发送至消息队列
 		redis.SetSubmissionId(ctx, submission.SubmissionId)
-		log.Println(submission.SubmissionId)
 		ch := ChannelDeclare()
 		ExchangeDeclare(ch)
 		Publish(ch, submission.Language, submission.SubmissionId)
+		log.Println(submission.Language)
 	}
 }
 
@@ -60,15 +59,36 @@ func Publish(ch *amqp.Channel, language string, submissionId int64) {
 
 type SubmissionDao interface {
 	FindCodeToJudge() ([]model.Submission, error)
-	SearchSubmissionById(submissionId int64) (code string, err error)
+	SearchSubmissionById(submissionId int64) (submission model.Submission, err error)
+	UpdateStatus(submissionId int64, status string) error
 }
 
-func NewSubmissionServiceImpl() *SubmissionDaoImpl {
-	return &SubmissionDaoImpl{
+type TestcaseDao interface {
+	SearchTestcase(problemId int64) ([]model.Testcase, error)
+}
+
+type InfoDao interface {
+	AddCorrect(userId int64) error
+	AddScore(userId int64, score int) error
+}
+
+type ProblemDao interface {
+	AddCorrect(problemId int64) error
+	SearchProblem(req model.ReqSearchProblem) (problems []model.Problem, err error)
+}
+
+func NewJudImpl() *JudImpl {
+	return &JudImpl{
 		SubmissionDao: dao.NewSubmissionDao(),
+		TestcaseDao:   dao.NewTestDao(),
+		ProblemDao:    dao.NewProblemDao(),
+		InfoDao:       dao.NewInfoDao(),
 	}
 }
 
-type SubmissionDaoImpl struct {
+type JudImpl struct {
 	SubmissionDao
+	TestcaseDao
+	InfoDao
+	ProblemDao
 }

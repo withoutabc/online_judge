@@ -16,10 +16,12 @@ func SetSubmissionId(ctx context.Context, submissionId int64) {
 }
 
 func DeleteSubmissionId(ctx context.Context, submissionId int64) {
+	//InitRedis()
 	// 删除键
 	err := RDB.Del(ctx, strconv.FormatInt(submissionId, 10)).Err()
 	if err != nil {
 		util.Log(err)
+
 	}
 }
 

@@ -17,6 +17,11 @@ type ProblemDaoImpl struct {
 	db *gorm.DB
 }
 
+func (p *ProblemDaoImpl) AddCorrect(problemId int64) error {
+	result := p.db.Model(&model.Problem{}).Where(&model.Problem{ProblemId: problemId}).UpdateColumn("correct", gorm.Expr("correct + ?", 1))
+	return result.Error
+}
+
 func (p *ProblemDaoImpl) SearchTitleExist(title string) (bool, error) {
 	var problem model.Problem
 	result := p.db.Model(&model.Problem{}).Where(&model.Problem{Title: title}).First(&problem)

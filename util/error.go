@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"online_judge/logs"
+	"time"
 )
 
 var ErrorCodeMap = map[int]error{
@@ -79,5 +80,5 @@ func NormErr(c *gin.Context, errCode int) {
 }
 
 func Log(err error) {
-	logs.Log().Error("", zap.Error(err))
+	logs.Log().Error(time.Now().Format("2006-01-02 15:04:05"), zap.Error(err))
 }
