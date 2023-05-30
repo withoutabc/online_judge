@@ -17,6 +17,15 @@ func RespOK(c *gin.Context) {
 	})
 }
 
+var Unauthorized = RespTemplate{
+	Status: 401,
+	Info:   "unauthorized",
+}
+
+func RespUnauthorized(c *gin.Context) {
+	c.JSON(http.StatusUnauthorized, Unauthorized)
+}
+
 var ParamError = RespTemplate{
 	Status: 400,
 	Info:   "params error",

@@ -2,6 +2,7 @@ package dao
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"online_judge/model"
 )
 
@@ -15,9 +16,10 @@ type TestDaoImpl struct {
 	db *gorm.DB
 }
 
-func (t *TestDaoImpl) AddTestcase(testcase *model.Testcase) error {
+func (t *TestDaoImpl) AddTestcase(testcase model.Testcase) (model.Testcase, error) {
 	result := t.db.Create(&testcase)
-	return result.Error
+	log.Println(testcase)
+	return testcase, result.Error
 }
 
 func (t *TestDaoImpl) SearchTestcase(problemId int64) ([]model.Testcase, error) {

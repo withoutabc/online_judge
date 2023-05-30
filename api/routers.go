@@ -20,10 +20,10 @@ func InitRouter() {
 	p := r.Group("/problem")
 	{
 		papi := NewProblemApi()
-		p.POST("/add", middleware.JWTAuthMiddleware(), papi.AddProblem)
+		p.POST("/add", middleware.JWTAuthMiddleware(), middleware.AdminAuthority(), papi.AddProblem)
 		p.POST("/search", papi.SearchProblem)
-		p.PUT("/update/:problem_id", middleware.JWTAuthMiddleware(), papi.UpdateProblem)
-		p.DELETE("/delete/:problem_id", middleware.JWTAuthMiddleware(), papi.DeleteProblem)
+		p.PUT("/update/:problem_id", middleware.JWTAuthMiddleware(), middleware.AdminAuthority(), papi.UpdateProblem)
+		p.DELETE("/delete/:problem_id", middleware.JWTAuthMiddleware(), middleware.AdminAuthority(), papi.DeleteProblem)
 	}
 	s := r.Group("/submission")
 	{
@@ -33,7 +33,7 @@ func InitRouter() {
 	}
 	t := r.Group("/test")
 	{
-		t.Use(middleware.JWTAuthMiddleware())
+		t.Use(middleware.JWTAuthMiddleware(), middleware.AdminAuthority())
 		sapi := NewTestApi()
 		t.POST("/add", sapi.AddTestcase)
 		t.GET("/search/:problem_id", sapi.SearchTestcase)

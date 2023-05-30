@@ -8,7 +8,7 @@ import (
 )
 
 type TestDao interface {
-	AddTestcase(testcase *model.Testcase) error
+	AddTestcase(testcase model.Testcase) (model.Testcase, error)
 	SearchTestcase(problemId int64) ([]model.Testcase, error)
 	UpdateTestcase(testcaseId int64, testcase model.Testcase) (int64, error)
 	DeleteTestcase(tx *gorm.DB, testcaseId int64) (int64, error)
@@ -27,12 +27,12 @@ type TestDaoImpl struct {
 	*gorm.DB
 }
 
-func (t *TestDaoImpl) AddTestcase(testcase model.Testcase) int {
-	err := t.TestDao.AddTestcase(&testcase)
+func (t *TestDaoImpl) AddTestcase(testcase model.Testcase) (model.Testcase, int) {
+	testcase, err := t.TestDao.AddTestcase(testcase)
 	if err != nil {
-		return util.InternalServeErrCode
+		return model.Testcase{}, util.InternalServeErrCode
 	}
-	return util.NoErrCode
+	return testcase, util.NoErrCode
 }
 
 func (t *TestDaoImpl) SearchTestcase(problemId int64) ([]model.Testcase, int) {

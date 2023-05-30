@@ -7,5 +7,8 @@ import (
 
 func main() {
 	dao.InitDB()
+	dao.InitAdapter()
+	dao.InitEnforcer()
 	api.InitRouter()
+
 }

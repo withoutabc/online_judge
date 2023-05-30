@@ -34,6 +34,11 @@ type RespLogin struct {
 	Token     string `json:"token"`
 }
 
+type RespLoginRole struct {
+	RespLogin
+	Role string `json:"role"`
+}
+
 // BeforeCreate uses snowflake to generate an ID.
 func (u *User) BeforeCreate(_ *gorm.DB) (err error) {
 	// skip if the accountID already set.

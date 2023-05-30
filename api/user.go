@@ -20,7 +20,7 @@ func NewUserApi() *UserServiceImpl {
 
 type UserService interface {
 	Register(user model.User) int
-	Login(user model.User) (model.RespLogin, int)
+	Login(user model.User) (model.RespLoginRole, int)
 	ChangePwd(pwd model.ReqChangePwd) int
 }
 

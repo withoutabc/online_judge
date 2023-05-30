@@ -6,6 +6,7 @@ import (
 	"online_judge/dao"
 	"online_judge/model"
 	"online_judge/util"
+	"strconv"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type UserDao interface {
 	SearchUserById(uid int64) (user model.User, err error)
 	SearchUserByName(username string) (user model.User, err error)
 	ChangePwd(uid int64, password string, salt []byte) error
+	GetRole(uid string) (bool, error)
 }
 
 func NewUserServiceImpl() *UserDaoImpl {
@@ -75,32 +77,46 @@ func (u *UserDaoImpl) Register(user model.User) int {
 	return util.NoErrCode
 }
 
-func (u *UserDaoImpl) Login(user model.User) (model.RespLogin, int) {
+func (u *UserDaoImpl) Login(user model.User) (model.RespLoginRole, int) {
 	mysqlUser, err := u.UserDao.SearchUserByName(user.Username)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			util.Find()
-			return model.RespLogin{}, util.NoRecordErrCode
+			return model.RespLoginRole{}, util.NoRecordErrCode
 		} else {
 			util.Find()
-			return model.RespLogin{}, util.InternalServeErrCode
+			return model.RespLoginRole{}, util.InternalServeErrCode
 		}
 	}
 	//if password right
 	if string(util.HashWithSalt(user.Password, mysqlUser.Salt)) != mysqlUser.Password {
 		util.Find()
-		return model.RespLogin{}, util.WrongPasswordErrCode
+		return model.RespLoginRole{}, util.WrongPasswordErrCode
 	}
 	//generate token
 	token, _, err := util.GenToken(mysqlUser.UserId)
 	if err != nil {
 		util.Find()
-		return model.RespLogin{}, util.InternalServeErrCode
+		return model.RespLoginRole{}, util.InternalServeErrCode
 	}
-	return model.RespLogin{
-		UserId:    mysqlUser.UserId,
-		LoginTime: time.Now().Format("2006-01-02 15:04:05"),
-		Token:     token,
+	b, err := u.UserDao.GetRole(strconv.FormatInt(mysqlUser.UserId, 10))
+	log.Println(err)
+	log.Println(b)
+	if err != nil {
+		util.Find()
+		return model.RespLoginRole{}, util.InternalServeErrCode
+	}
+	m := map[bool]string{
+		true:  "admin",
+		false: "user",
+	}
+	return model.RespLoginRole{
+		RespLogin: model.RespLogin{
+			UserId:    mysqlUser.UserId,
+			LoginTime: time.Now().Format("2006-01-02 15:04:05"),
+			Token:     token,
+		},
+		Role: m[b],
 	}, util.NoErrCode
 }
 

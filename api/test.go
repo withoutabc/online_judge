@@ -20,7 +20,7 @@ func NewTestApi() *TestServiceImpl {
 }
 
 type TestService interface {
-	AddTestcase(testcase model.Testcase) int
+	AddTestcase(testcase model.Testcase) (model.Testcase, int)
 	SearchTestcase(problemId int64) ([]model.Testcase, int)
 	UpdateTestcase(testcaseId int64, testcase model.Testcase) int
 	DeleteTestcase(testcaseId int64) int
@@ -33,13 +33,13 @@ func (t *TestServiceImpl) AddTestcase(c *gin.Context) {
 		util.NormErr(c, util.BindingQueryErrCode)
 		return
 	}
-	code := t.TestService.AddTestcase(testcase)
+	testcase, code := t.TestService.AddTestcase(testcase)
 	switch code {
 	case util.InternalServeErrCode:
 		util.NormErr(c, util.InternalServeErrCode)
 		return
 	}
-	util.RespOK(c)
+	util.RespNormSuccess(c, testcase)
 }
 
 func (t *TestServiceImpl) SearchTestcase(c *gin.Context) {

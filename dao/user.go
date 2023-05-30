@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"github.com/casbin/casbin/v2"
 	"gorm.io/gorm"
 	"online_judge/model"
 )
@@ -8,11 +9,17 @@ import (
 func NewUserDao() *UserDaoImpl {
 	return &UserDaoImpl{
 		db: DB,
+		e:  E,
 	}
 }
 
 type UserDaoImpl struct {
 	db *gorm.DB
+	e  *casbin.Enforcer
+}
+
+func (u *UserDaoImpl) GetRole(uid string) (bool, error) {
+	return E.Enforce(uid, "admin_data", "read")
 }
 
 func (u *UserDaoImpl) CreateUser(tx *gorm.DB, user *model.User) error {

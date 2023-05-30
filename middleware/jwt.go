@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"online_judge/util"
+	"strconv"
 	"strings"
 )
 
@@ -24,12 +25,14 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			return
 		}
 		// parts[1]是获取到的tokenString，使用解析JWT的函数来解析
-		_, err := util.ParseToken(parts[1])
+		claims, err := util.ParseToken(parts[1])
 		if err != nil {
 			util.NormErr(c, util.InValidTokenErrCode)
 			c.Abort()
 			return
 		}
+		c.Set("user_id", strconv.FormatInt(claims.UserId, 10))
 		c.Next()
+
 	}
 }

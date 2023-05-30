@@ -127,20 +127,30 @@ func Go(submission model.Submission, testcases []model.Testcase) {
 			continue
 		}
 		//4.编译、运行
-		cmd = exec.Command("docker", "exec", "golang-judge", "sh", "-c", "go build -o /go/src/app/exert /go/src/app/code.go && /go/src/app/exert < input-go.txt")
+		cmd = exec.Command("docker", "exec", "golang-judge", "sh", "-c", "go build -o /go/src/app/exert /go/src/app/code.go && timeout 2s /go/src/app/exert < input-go.txt")
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err = cmd.Run()
+		log.Println(err)
 		if err != nil {
-			log.Println(err)
-			log.Println("CE")
-			err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
-			if err != nil {
+			if err.Error() == "exit status 124" {
+				log.Println("超时")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "运行超时")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
+				return
+			} else {
+				log.Println("CE")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
 				util.Log(err)
-				panic(err)
+				return
 			}
-			util.Log(err)
-			return
 		}
 		log.Println(strings.TrimSpace(out.String()))
 		//5.处理输出结果
@@ -174,7 +184,7 @@ func C(submission model.Submission, testcases []model.Testcase) {
 			continue
 		}
 		//2.复制input.txt
-		cmd := exec.Command("docker", "cp", "input-c.txt", "c-judge:go/src/app")
+		cmd := exec.Command("docker", "cp", "input-c.txt", "c-judge:c/src/app")
 		err = cmd.Run()
 		if err != nil {
 			util.Log(err)
@@ -184,7 +194,7 @@ func C(submission model.Submission, testcases []model.Testcase) {
 			continue
 		}
 		//3.复制code.go
-		cmd = exec.Command("docker", "cp", "code.c", "c-judge:/c/src/app")
+		cmd = exec.Command("docker", "cp", "code.c", "c-judge:c/src/app")
 		err = cmd.Run()
 		if err != nil {
 			util.Log(err)
@@ -196,14 +206,24 @@ func C(submission model.Submission, testcases []model.Testcase) {
 		cmd.Stdout = &out
 		err = cmd.Run()
 		if err != nil {
-			log.Println("CE")
-			err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
-			if err != nil {
+			if err.Error() == "exit status 124" {
+				log.Println("超时")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "运行超时")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
+				return
+			} else {
+				log.Println("CE")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
 				util.Log(err)
-				panic(err)
+				return
 			}
-			util.Log(err)
-			return
 		}
 		log.Println(strings.TrimSpace(out.String()))
 		//5.处理输出结果
@@ -260,14 +280,24 @@ func Cpp(submission model.Submission, testcases []model.Testcase) {
 			cmd.Stdout = &out
 			err = cmd.Run()
 			if err != nil {
-				log.Println("CE")
-				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
-				if err != nil {
+				if err.Error() == "exit status 124" {
+					log.Println("超时")
+					err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "运行超时")
+					if err != nil {
+						util.Log(err)
+						panic(err)
+					}
+					return
+				} else {
+					log.Println("CE")
+					err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
+					if err != nil {
+						util.Log(err)
+						panic(err)
+					}
 					util.Log(err)
-					panic(err)
+					return
 				}
-				util.Log(err)
-				return
 			}
 			log.Println(strings.TrimSpace(out.String()))
 			//5.处理输出结果
@@ -324,14 +354,24 @@ func Java(submission model.Submission, testcases []model.Testcase) {
 		cmd.Stdout = &out
 		err = cmd.Run()
 		if err != nil {
-			log.Println("CE")
-			err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
-			if err != nil {
+			if err.Error() == "exit status 124" {
+				log.Println("超时")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "运行超时")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
+				return
+			} else {
+				log.Println("CE")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
 				util.Log(err)
-				panic(err)
+				return
 			}
-			util.Log(err)
-			return
 		}
 		log.Println(strings.TrimSpace(out.String()))
 		//5.处理输出结果
@@ -387,15 +427,27 @@ func Python(submission model.Submission, testcases []model.Testcase) {
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err = cmd.Run()
+		log.Println(cmd.Err)
+		log.Println(err)
 		if err != nil {
-			log.Println("CE")
-			err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
-			if err != nil {
+			if err.Error() == "exit status 124" {
+				log.Println("超时")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "运行超时")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
+				return
+			} else {
+				log.Println("CE")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
 				util.Log(err)
-				panic(err)
+				return
 			}
-			util.Log(err)
-			return
 		}
 		log.Println(strings.TrimSpace(out.String()))
 		//5.处理输出结果
