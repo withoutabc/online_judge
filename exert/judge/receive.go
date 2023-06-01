@@ -7,7 +7,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"io/ioutil"
 	"log"
-	"online_judge/dao"
 	"online_judge/model"
 	"online_judge/redis"
 	"online_judge/util"
@@ -17,9 +16,15 @@ import (
 	"time"
 )
 
+var langMap = map[string]string{
+	"Go":     "go",
+	"Python": "py",
+	"C++":    "cpp",
+	"C":      "c",
+	"Java":   "java",
+}
+
 func Consume(ch *amqp.Channel, queueName string) {
-	dao.InitDB()
-	redis.InitRedis()
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	msgs, err := ch.Consume(
@@ -51,8 +56,9 @@ func Consume(ch *amqp.Channel, queueName string) {
 			util.Log(err)
 			continue
 		}
-		//	把code写入code.go
-		err = ioutil.WriteFile("code.go", []byte(submission.Code), 0644)
+		//	把code写入code.
+		filename := fmt.Sprintf("code.%s", langMap[submission.Language])
+		err = ioutil.WriteFile(filename, []byte(submission.Code), 0644)
 		if err != nil {
 			util.Log(err)
 			continue
@@ -131,7 +137,7 @@ func Go(submission model.Submission, testcases []model.Testcase) {
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err = cmd.Run()
-		log.Println(err)
+		log.Println(strings.TrimSpace(out.String()))
 		if err != nil {
 			if err.Error() == "exit status 124" {
 				log.Println("超时")
@@ -152,7 +158,83 @@ func Go(submission model.Submission, testcases []model.Testcase) {
 				return
 			}
 		}
+		//5.处理输出结果
+		if strings.TrimSpace(out.String()) != testcase.Output {
+			fmt.Println("wrong")
+			err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "答案错误")
+			if err != nil {
+				util.Log(err)
+				panic(err)
+			}
+			return
+		} else {
+			count++
+			log.Printf("正确%d次", count)
+			if count == len(testcases) {
+				log.Println("start add score and correct")
+				DealWithCorrection(submission)
+			}
+		}
+	}
+}
+
+func C(submission model.Submission, testcases []model.Testcase) {
+	var count = 0
+	for _, testcase := range testcases {
+		fmt.Printf("input:%s\n", testcase.Input)
+		//1.写入input
+		err := ioutil.WriteFile("input-c.txt", []byte(testcase.Input), 0644)
+		if err != nil {
+			log.Printf("1 %v", err)
+			util.Log(err)
+			continue
+		}
+		//2.复制input.txt
+		cmd := exec.Command("docker", "cp", "input-c.txt", "c-judge:c/src/app")
+		err = cmd.Run()
+		if err != nil {
+			util.Log(err)
+			log.Printf("2 %v", err)
+			if err.Error() == "exit status 1" {
+				return
+			}
+			continue
+		}
+		//3.复制code.go
+		cmd = exec.Command("docker", "cp", "code.c", "c-judge:c/src/app")
+		err = cmd.Run()
+		if err != nil {
+			log.Printf("3 %v", err)
+			util.Log(err)
+			continue
+		}
+		//4.编译、运行
+		cmd = exec.Command("docker", "exec", "c-judge", "sh", "-c", "gcc -o /c/src/app/exert /c/src/app/code.c && timeout 2s /c/src/app/exert < input-c.txt")
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		err = cmd.Run()
 		log.Println(strings.TrimSpace(out.String()))
+		if err != nil {
+			log.Printf("4 %v", err)
+			if err.Error() == "exit status 124" {
+				log.Println("超时")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "运行超时")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
+				return
+			} else {
+				log.Println("CE")
+				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
+				if err != nil {
+					util.Log(err)
+					panic(err)
+				}
+				util.Log(err)
+				return
+			}
+		}
 		//5.处理输出结果
 		if strings.TrimSpace(out.String()) != testcase.Output {
 			fmt.Println("wrong")
@@ -165,26 +247,26 @@ func Go(submission model.Submission, testcases []model.Testcase) {
 		} else {
 			count++
 			log.Println(count)
-			if count != len(testcases) {
-				continue
+			if count == len(testcases) {
+				DealWithCorrection(submission)
 			}
 		}
-		DealWithCorrection(submission)
+
 	}
 }
 
-func C(submission model.Submission, testcases []model.Testcase) {
+func Cpp(submission model.Submission, testcases []model.Testcase) {
 	var count = 0
 	for _, testcase := range testcases {
 		fmt.Printf("input:%s\n", testcase.Input)
 		//1.写入input
-		err := ioutil.WriteFile("input-c.txt", []byte(testcase.Input), 0644)
+		err := ioutil.WriteFile("input-cpp.txt", []byte(testcase.Input), 0644)
 		if err != nil {
 			util.Log(err)
 			continue
 		}
 		//2.复制input.txt
-		cmd := exec.Command("docker", "cp", "input-c.txt", "c-judge:c/src/app")
+		cmd := exec.Command("docker", "cp", "input-cpp.txt", "cpp-judge:cpp/src/app")
 		err = cmd.Run()
 		if err != nil {
 			util.Log(err)
@@ -194,14 +276,14 @@ func C(submission model.Submission, testcases []model.Testcase) {
 			continue
 		}
 		//3.复制code.go
-		cmd = exec.Command("docker", "cp", "code.c", "c-judge:c/src/app")
+		cmd = exec.Command("docker", "cp", "code.cpp", "cpp-judge:/cpp/src/app")
 		err = cmd.Run()
 		if err != nil {
 			util.Log(err)
 			continue
 		}
 		//4.编译、运行
-		cmd = exec.Command("docker", "exec", "c-judge", "sh", "-c", "gcc -o /c/src/app/exert /c/src/app/code.c && /c/src/app/exert < input-c.txt")
+		cmd = exec.Command("docker", "exec", "cpp-judge", "sh", "-c", "g++ -o /cpp/src/app/exert /cpp/src/app/code.cpp && timeout 2s /cpp/src/app/exert < input-cpp.txt")
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err = cmd.Run()
@@ -238,85 +320,9 @@ func C(submission model.Submission, testcases []model.Testcase) {
 		} else {
 			count++
 			log.Println(count)
-			if count != len(testcases) {
-				continue
+			if count == len(testcases) {
+				DealWithCorrection(submission)
 			}
-		}
-		DealWithCorrection(submission)
-	}
-}
-
-func Cpp(submission model.Submission, testcases []model.Testcase) {
-	{
-		var count = 0
-		for _, testcase := range testcases {
-			fmt.Printf("input:%s\n", testcase.Input)
-			//1.写入input
-			err := ioutil.WriteFile("input-cpp.txt", []byte(testcase.Input), 0644)
-			if err != nil {
-				util.Log(err)
-				continue
-			}
-			//2.复制input.txt
-			cmd := exec.Command("docker", "cp", "input-cpp.txt", "cpp-judge:cpp/src/app")
-			err = cmd.Run()
-			if err != nil {
-				util.Log(err)
-				if err.Error() == "exit status 1" {
-					return
-				}
-				continue
-			}
-			//3.复制code.go
-			cmd = exec.Command("docker", "cp", "code.cpp", "cpp-judge:/cpp/src/app")
-			err = cmd.Run()
-			if err != nil {
-				util.Log(err)
-				continue
-			}
-			//4.编译、运行
-			cmd = exec.Command("docker", "exec", "cpp-judge", "sh", "-c", "g++ -o /cpp/src/app/exert /cpp/src/app/code.cpp && /cpp/src/app/exert < input-cpp.txt")
-			var out bytes.Buffer
-			cmd.Stdout = &out
-			err = cmd.Run()
-			if err != nil {
-				if err.Error() == "exit status 124" {
-					log.Println("超时")
-					err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "运行超时")
-					if err != nil {
-						util.Log(err)
-						panic(err)
-					}
-					return
-				} else {
-					log.Println("CE")
-					err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
-					if err != nil {
-						util.Log(err)
-						panic(err)
-					}
-					util.Log(err)
-					return
-				}
-			}
-			log.Println(strings.TrimSpace(out.String()))
-			//5.处理输出结果
-			if strings.TrimSpace(out.String()) != testcase.Output {
-				fmt.Println("wrong")
-				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "答案错误")
-				if err != nil {
-					util.Log(err)
-					panic(err)
-				}
-				return
-			} else {
-				count++
-				log.Println(count)
-				if count != len(testcases) {
-					continue
-				}
-			}
-			DealWithCorrection(submission)
 		}
 	}
 }
@@ -349,7 +355,7 @@ func Java(submission model.Submission, testcases []model.Testcase) {
 			continue
 		}
 		//4.编译、运行
-		cmd = exec.Command("docker", "exec", "java-judge", "sh", "-c", "javac /java/src/app/code.java && java Main < input-java.txt")
+		cmd = exec.Command("docker", "exec", "java-judge", "sh", "-c", "javac /java/src/app/code.java && timeout 2s java Main < input-java.txt")
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err = cmd.Run()
@@ -386,11 +392,11 @@ func Java(submission model.Submission, testcases []model.Testcase) {
 		} else {
 			count++
 			log.Println(count)
-			if count != len(testcases) {
-				continue
+			if count == len(testcases) {
+				DealWithCorrection(submission)
 			}
 		}
-		DealWithCorrection(submission)
+
 	}
 }
 
@@ -423,7 +429,7 @@ func Python(submission model.Submission, testcases []model.Testcase) {
 			continue
 		}
 		//4.编译、运行
-		cmd = exec.Command("docker", "exec", "python-judge", "sh", "-c", "python /python/src/app/code.py < input-python.txt")
+		cmd = exec.Command("docker", "exec", "python-judge", "sh", "-c", "timeout 2s python /python/src/app/code.py < input-python.txt")
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err = cmd.Run()
@@ -462,11 +468,10 @@ func Python(submission model.Submission, testcases []model.Testcase) {
 		} else {
 			count++
 			log.Println(count)
-			if count != len(testcases) {
-				continue
+			if count == len(testcases) {
+				DealWithCorrection(submission)
 			}
 		}
-		DealWithCorrection(submission)
 	}
 
 }

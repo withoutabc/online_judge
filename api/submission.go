@@ -35,6 +35,9 @@ func (s *SubmissionServiceImpl) Submit(c *gin.Context) {
 	case util.InternalServeErrCode:
 		util.RespInternalErr(c)
 		return
+	case util.RepeatedSubmissionErrCode:
+		util.NormErr(c, util.RepeatedSubmissionErrCode)
+		return
 	}
 	util.RespOK(c)
 }

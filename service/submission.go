@@ -28,8 +28,17 @@ type SubmissionDaoImpl struct {
 }
 
 func (s *SubmissionDaoImpl) AddSubmission(submission model.Submission) int {
+	//if exist same problem and language
+	submissions, err := s.SubmissionDao.SearchSubmission(model.ReqSearchSubmission{UserId: submission.UserId,
+		Language: submission.Language, ProblemId: submission.ProblemId, Status: "正确"})
+	if err != nil {
+		return util.InternalServeErrCode
+	}
+	if len(submissions) != 0 {
+		return util.RepeatedSubmissionErrCode
+	}
 	tx := s.DB.Begin()
-	_, err := s.SubmissionDao.AddSubmission(tx, &submission)
+	_, err = s.SubmissionDao.AddSubmission(tx, &submission)
 	if err != nil {
 		tx.Rollback()
 		return util.InternalServeErrCode

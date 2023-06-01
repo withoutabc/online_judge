@@ -17,12 +17,13 @@ var ErrorCodeMap = map[int]error{
 	UnauthorizedErrCode:  UnauthorizedErr,
 	InternalServeErrCode: InternalServeErr,
 
-	IdNotIntegral:           IdNotIntegralErr,
-	NoRecordErrCode:         NoRecordErr,
-	RepeatedUsernameErrCode: RepeatedUsernameErr,
-	WrongPasswordErrCode:    WrongPasswordErr,
-	UpdateFailErrCode:       UpdateFailErr,
-	RepeatedTitleErrCode:    RepeatedTitleErr,
+	IdNotIntegral:             IdNotIntegralErr,
+	NoRecordErrCode:           NoRecordErr,
+	RepeatedUsernameErrCode:   RepeatedUsernameErr,
+	WrongPasswordErrCode:      WrongPasswordErr,
+	UpdateFailErrCode:         UpdateFailErr,
+	RepeatedTitleErrCode:      RepeatedTitleErr,
+	RepeatedSubmissionErrCode: RepeatedSubmissionErr,
 
 	BindingQueryErrCode: BindingQueryErr,
 	WrongTimeCode:       WrongTimeCodeErr,
@@ -37,12 +38,13 @@ var (
 	UnauthorizedErr  = errors.New("unauthorized")
 	InternalServeErr = errors.New("internal serve error")
 
-	IdNotIntegralErr    = errors.New("id is not a integral")
-	NoRecordErr         = errors.New("no record")
-	RepeatedUsernameErr = errors.New("repeated username")
-	WrongPasswordErr    = errors.New("wrong password")
-	UpdateFailErr       = errors.New("update failed")
-	RepeatedTitleErr    = errors.New("repeated title")
+	IdNotIntegralErr      = errors.New("id is not a integral")
+	NoRecordErr           = errors.New("no record")
+	RepeatedUsernameErr   = errors.New("repeated username")
+	WrongPasswordErr      = errors.New("wrong password")
+	UpdateFailErr         = errors.New("update failed")
+	RepeatedTitleErr      = errors.New("repeated title")
+	RepeatedSubmissionErr = errors.New("repeat submit")
 
 	BindingQueryErr   = errors.New("binding error")
 	WrongTimeCodeErr  = errors.New("wrong time")
@@ -59,12 +61,13 @@ const (
 	WrongAuthFormatErrCode = 2004
 	InValidTokenErrCode    = 2005
 
-	IdNotIntegral           = 9999
-	NoRecordErrCode         = 10000
-	RepeatedUsernameErrCode = 10001
-	WrongPasswordErrCode    = 10002
-	UpdateFailErrCode       = 10003 //update or delete error
-	RepeatedTitleErrCode    = 10004
+	IdNotIntegral             = 9999
+	NoRecordErrCode           = 10000
+	RepeatedUsernameErrCode   = 10001
+	WrongPasswordErrCode      = 10002
+	UpdateFailErrCode         = 10003 //update or delete error
+	RepeatedTitleErrCode      = 10004
+	RepeatedSubmissionErrCode = 10005
 
 	BindingQueryErrCode = 40000
 	WrongTimeCode       = 40001

@@ -20,7 +20,7 @@ type ProblemDao interface {
 	SearchTitleExist(title string) (bool, error)
 	SearchProblem(request model.ReqSearchProblem) (problems []model.Problem, err error)
 	SearchExistById(problemId int64) (bool, error)
-	UpdateProblem(problemId int64, problem *model.Problem) (int64, error)
+	UpdateProblem(problemId int64, problem model.Problem) (int64, error)
 	DeleteProblem(tx *gorm.DB, problemId int64) (int64, error)
 	AddProblemSubmit(tx *gorm.DB, problemId int64) error
 }
@@ -71,7 +71,7 @@ func (p *ProblemDaoImpl) UpdateProblem(problemId int64, problem model.Problem) i
 	if b == true {
 		return util.RepeatedTitleErrCode
 	}
-	count, err := p.ProblemDao.UpdateProblem(problemId, &problem)
+	count, err := p.ProblemDao.UpdateProblem(problemId, problem)
 	if err != nil {
 		return util.InternalServeErrCode
 	}

@@ -24,7 +24,7 @@ var DB *gorm.DB
 
 // InitDB gorm连接
 func InitDB() {
-	dsn := "root:224488@tcp(127.0.0.1:3306)/online_judge?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "debian-sys-maint:ZF0kfsp5uMD2lVo7@tcp(127.0.0.1:3306)/online_judge?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		PrepareStmt: true,
 	})

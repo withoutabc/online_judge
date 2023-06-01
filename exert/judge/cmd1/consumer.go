@@ -1,10 +1,14 @@
 package main
 
 import (
+	"online_judge/dao"
 	"online_judge/exert/judge"
+	"online_judge/redis"
 )
 
 func main() {
+	dao.InitDB()
+	redis.InitRedis()
 	judge.InitRabbitMq()
 	ch := judge.ChannelDeclare()
 	judge.ExchangeDeclare(ch)
