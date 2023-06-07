@@ -22,6 +22,12 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"info": "已经是管理员"})
 			return
 		}
+		err = e.LoadPolicy()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"info": "加载数据错误"})
+			return
+		}
+
 		util.RespOK(c)
 	})
 	r.Run(":2334")

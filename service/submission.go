@@ -70,11 +70,13 @@ func (s *SubmissionDaoImpl) SearchSubmission(req model.ReqSearchSubmission) ([]m
 	subAndPro = make([]model.SubAndPro, len(submissions))
 	//对于每个submission找problem
 	for i, submission := range submissions {
+
 		problems, err := s.ProblemDao.SearchProblem(model.ReqSearchProblem{ProblemId: submission.ProblemId})
 		if err != nil {
 			return nil, util.InternalServeErrCode
 		}
 		subAndPro[i].Submission = submission
+		subAndPro[i].ProblemId = submission.ProblemId
 		if len(problems) == 0 {
 			continue
 		}

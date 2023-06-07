@@ -27,6 +27,7 @@ type ReqSearchSubmission struct {
 type SubAndPro struct {
 	Submission
 	Problem
+	ProblemId int64 `json:"problem_id"`
 }
 
 // BeforeCreate uses snowflake to generate an ID.

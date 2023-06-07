@@ -329,6 +329,7 @@ func Cpp(submission model.Submission, testcases []model.Testcase) {
 
 func Java(submission model.Submission, testcases []model.Testcase) {
 	var count = 0
+	log.Println(submission)
 	for _, testcase := range testcases {
 		fmt.Printf("input:%s\n", testcase.Input)
 		//1.写入input
@@ -363,14 +364,17 @@ func Java(submission model.Submission, testcases []model.Testcase) {
 			if err.Error() == "exit status 124" {
 				log.Println("超时")
 				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "运行超时")
+
 				if err != nil {
 					util.Log(err)
 					panic(err)
 				}
 				return
 			} else {
+				log.Println(err)
 				log.Println("CE")
 				err = NewJudImpl().SubmissionDao.UpdateStatus(submission.SubmissionId, "编译错误")
+
 				if err != nil {
 					util.Log(err)
 					panic(err)
